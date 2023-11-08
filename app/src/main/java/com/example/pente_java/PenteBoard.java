@@ -26,8 +26,95 @@ public class PenteBoard extends AppCompatActivity {
     private Round r;
     private Player h;
     private Player c;
+    private char humanChoice;
 
     private ComputerStrategy s;
+    private void showTournamentEndDialog(
+        int humanScore, int computerScore,
+        int humanCapturedPairs, int humanConsecutiveFours, int humanGamePoints,
+        int computerCapturedPairs, int computerConsecutiveFours, int computerGamePoints) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.tournament_end_dialog, null);
+        builder.setView(dialogView);
+
+        TextView humanScoreView = dialogView.findViewById(R.id.humanScore);
+        TextView computerScoreView = dialogView.findViewById(R.id.computerScore);
+        TextView humanCapturedPairsView = dialogView.findViewById(R.id.humanCapturedPairs);
+        TextView humanConsecutiveFoursView = dialogView.findViewById(R.id.humanConsecutiveFours);
+        TextView humanGamePointsView = dialogView.findViewById(R.id.humanGamePoints);
+        TextView computerCapturedPairsView = dialogView.findViewById(R.id.computerCapturedPairs);
+        TextView computerConsecutiveFoursView = dialogView.findViewById(R.id.computerConsecutiveFours);
+        TextView computerGamePointsView = dialogView.findViewById(R.id.computerGamePoints);
+        TextView winnerTextView = dialogView.findViewById(R.id.winnerText);
+
+        Button closeButton = dialogView.findViewById(R.id.closeButton);
+
+        humanScoreView.setText("Human Score: " + humanScore);
+        computerScoreView.setText("Computer Score: " + computerScore);
+        humanCapturedPairsView.setText("Human Captured Pairs: " + humanCapturedPairs);
+        humanConsecutiveFoursView.setText("Human Consecutive Fours: " + humanConsecutiveFours);
+        humanGamePointsView.setText("Human Game Points: " + humanGamePoints);
+        computerCapturedPairsView.setText("Computer Captured Pairs: " + computerCapturedPairs);
+        computerConsecutiveFoursView.setText("Computer Consecutive Fours: " + computerConsecutiveFours);
+        computerGamePointsView.setText("Computer Game Points: " + computerGamePoints);
+
+        // Determine and display the winner
+        String winner;
+        if (humanScore > computerScore) {
+            winner = "Human";
+        } else if (humanScore < computerScore) {
+            winner = "Computer";
+        } else {
+            winner = "Tie";
+        }
+        winnerTextView.setText("Winner: " + winner);
+
+        final AlertDialog dialog = builder.create();
+        dialog.show();
+
+        closeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+//                Intent intent = new Intent(PenteBoard.this, MainActivity.class);
+//                startActivity(intent);
+            }
+        });
+    }
+
+    private void showCoinTossDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.coin_toss, null);
+        builder.setView(dialogView);
+
+        Button headsButton = dialogView.findViewById(R.id.headsBtn);
+        Button tailsButton = dialogView.findViewById(R.id.tailsBtn);
+        TextView coinTossResult = dialogView.findViewById(R.id.coinTossResult);
+        final AlertDialog dialog = builder.create();
+
+        headsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                humanChoice = 'H';
+                r.startRound(t, b, humanChoice,PenteBoard.this);
+                dialog.dismiss();
+            }
+        });
+
+        tailsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                humanChoice = 'T';
+                r.startRound(t, b, humanChoice,PenteBoard.this);
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
+    }
+
+
+
     public void scoreDialog(){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View dialogView = getLayoutInflater().inflate(R.layout.score_dialog, null);
@@ -43,25 +130,55 @@ public class PenteBoard extends AppCompatActivity {
         TextView computerFiveScoreTextView = dialogView.findViewById(R.id.computerFiveScore);
         TextView humanFourScoreTextView = dialogView.findViewById(R.id.humanFourScore);
         TextView computerFourScoreTextView = dialogView.findViewById(R.id.computerFourScore);
-        Button closeButton = dialogView.findViewById(R.id.closeButton);
+        TextView winnerDeclarationTextView = dialogView.findViewById(R.id.winnerDeclaration);
+
+        Button quitBtn = dialogView.findViewById(R.id.quitTournament);
+        Button continueBtn = dialogView.findViewById(R.id.continueTournament);
+
         // Find the Close Button
 
 
         // Set the score values
-        humanScoreTextView.setText("Human Score: " + Integer.toString(r.getRoundEndScore(h)));
-        computerScoreTextView.setText("Computer Score: " + Integer.toString(r.getRoundEndScore(c)));
+        humanScoreTextView.setText("Human Total Score: " + Integer.toString(r.getRoundEndScore(h)));
+        computerScoreTextView.setText("Computer Total Score: " + Integer.toString(r.getRoundEndScore(c)));
         humanCaptureScoreTextView.setText("Human Capture Score: " + r.getPairsCapturedNum(h));
         computerCaptureScoreTextView.setText("Computer Capture Score: " + r.getPairsCapturedNum(c));
         humanFiveScoreTextView.setText("Human Game Score: " + r.getGamePoints(h));
-        computerFiveScoreTextView.setText("Computer Ga,e Score: " + r.getGamePoints(c));
+        computerFiveScoreTextView.setText("Computer Game Score: " + r.getGamePoints(c));
         humanFourScoreTextView.setText("Human Four Consecutive Score: " + r.getFourConsecutivesNum(h));
         computerFourScoreTextView.setText("Computer Four Consecutive Score: " + r.getFourConsecutivesNum(c));
+        winnerDeclarationTextView.setText("Winner: " + r.getWinner().getName());
 
-
-        closeButton.setOnClickListener(new View.OnClickListener() {
+        quitBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 dialog.dismiss(); // Dismiss the dialog
+                // TODO show tournament end scores in a dialog box
+                int[] hFinalScores = t.getFinalScores(h, false);
+                int[] cFinalScores = t.getFinalScores(c, false);
+                showTournamentEndDialog(hFinalScores[0], cFinalScores[0], hFinalScores[1],
+                        hFinalScores[2], hFinalScores[3], cFinalScores[1], cFinalScores[2], cFinalScores[3]);
+
+            }
+        });
+
+        continueBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss(); // Dismiss the dialog
+                // reset the board and start a new round
+                b.resetBoard();
+                //TODO coin toss dialog
+                r = t.createANewRound();
+                if (t.getTotalScores(h, false) == t.getTotalScores(c, false)){
+                    showCoinTossDialog();
+                }
+                else{
+                    //no coin toss needed
+//                    showCoinTossDialog();
+                    r.startRound(t, b, 'H',PenteBoard.this);
+                }
+                initBoard();
 
             }
         });
@@ -73,6 +190,17 @@ public class PenteBoard extends AppCompatActivity {
         //  now show the board
         //  now show the board
 
+        TextView humanCapturedPairsTextView = findViewById(R.id.humanCapturedPairs);
+        TextView computerCapturedPairsTextView = findViewById(R.id.computerCapturedPairs);
+        TextView humanTotalScoreTextView = findViewById(R.id.humanTotalScore);
+        TextView computerTotalScoreTextView = findViewById(R.id.computerTotalScore);
+        Button helpBtn = findViewById(R.id.helpBtn);
+
+        humanCapturedPairsTextView.setText("Human Captured Pairs: " + Integer.toString(r.getPairsCapturedNum(h)));
+        computerCapturedPairsTextView.setText("Computer Captured Pairs" + Integer.toString(r.getPairsCapturedNum(c)));
+        humanTotalScoreTextView.setText("Human Total Score: " + Integer.toString(t.getTotalScores(h, false)) + "  ");
+        computerTotalScoreTextView.setText("Computer Total Score"  + Integer.toString(t.getTotalScores(c, false)) + "  ");
+
 
         GridLayout penteBoard = findViewById(R.id.penteBoard);
         penteBoard.removeAllViews();
@@ -83,7 +211,7 @@ public class PenteBoard extends AppCompatActivity {
 
                 // Set button properties
                 button.setLayoutParams(new GridLayout.LayoutParams());
-                int margin = 10; // Set your desired margin value
+                int margin = 100; // Set your desired margin value
                 button.setPadding(margin, margin, margin, margin);
                 if (b.getPiece(row+1, col+1) == '0'){
                     button.setBackgroundResource(R.drawable.border_drawable); // Custom background drawable
@@ -113,9 +241,18 @@ public class PenteBoard extends AppCompatActivity {
                 button.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        //check if second turn of white and withing 3 steps from j10
+
+
+
                         //change turn
                         if (b.getPiece(finalRow+1, finalCol+1)!='0'){
                             Toast.makeText(getApplicationContext(), "Cannot place on Clicked: Row " + finalRow + ", Column " + finalCol, Toast.LENGTH_SHORT).show();
+                        }
+                        else if (r.getTurnNum() == 2 && r.getCurrentPlayer().getColor() == 'W' && (Math.abs(finalRow+1 - 10) <= 3 && Math.abs(finalCol+1 - 10) <= 3))  {
+                            // If a human inputs within 3 steps from the center, re-ask for input.
+
+                                Toast.makeText(getApplicationContext(), "Cannot put within 3 steps from J10 ", Toast.LENGTH_SHORT).show();
                         }
                         else{
 //                            Toast.makeText(getApplicationContext(), r.getCurrentPlayer().getName(), Toast.LENGTH_SHORT).show();
@@ -127,6 +264,7 @@ public class PenteBoard extends AppCompatActivity {
 //                                show option to play a new game or quit the game
 //                                if new game is clicked, re intent back to this page
 //                                else show the overall tournament scores and end the game
+                                r.determineWinnerOfTheRound();
                                scoreDialog();
                             }
 
@@ -153,6 +291,7 @@ public class PenteBoard extends AppCompatActivity {
 ////                        intent.putExtra("tournament", t);
 //
 //                        startActivity(intent);
+                        r.determineWinnerOfTheRound();
                         scoreDialog();
 
                     }
@@ -212,7 +351,7 @@ public class PenteBoard extends AppCompatActivity {
                 computerColor.setVisibility(View.VISIBLE);
                 // Coin toss returns true if the user won
 
-                if (r.startRound(t,b, scanner, buttonLabel.charAt(0), PenteBoard.this)) {
+                if (r.startRound(t,b, buttonLabel.charAt(0), PenteBoard.this)) {
                     //set Human:White
                     //set Computer: Black
                     humanColor.setText("Human:White");
@@ -229,6 +368,7 @@ public class PenteBoard extends AppCompatActivity {
                     h.setBackground(R.drawable.black_piece);
                     c.setBackground(R.drawable.white_piece);
                 }
+
 
                 // Use the Handler to post the Runnable with a delay of 2000 milliseconds (2 seconds)
                 handler.postDelayed(hideWidgetsRunnable, 2000);

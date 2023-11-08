@@ -18,6 +18,14 @@ public class Board {
         this.row = row;
         this.col = col;
     }
+
+    public int getRow(){
+        return row;
+    }
+
+    public int getCol(){
+        return col;
+    }
     public boolean parsePosition(String input) {
         char colChar = Character.toUpperCase(input.charAt(0));
         int numericEquivalent = colChar - 'A' + 1;
@@ -54,26 +62,26 @@ public class Board {
         return row >= 1 && row <= BOARD_DIMENSION - 1 && col >= 1 && col <= BOARD_DIMENSION - 1;
     }
 
-//    public boolean checkValidity(Round r) {
-//        // When is a position valid?
-//        // Private members 'row' and 'col' hold the inputted values.
-//        // The position must be within bounds and empty.
-//
-//        // For the second turn of White ('W'), it must be placed 3 steps away from the
-//        // center.
-//        // In the 'ComputerStrategy' class, you can account for this rule by giving
-//        // negative priorities to positions within 3 intersections of the center.
-//
-//        if (r.getTurnNum() == 2 && r.getCurrentPlayer().getColor() == 'W') {
-//            // If a human inputs within 3 steps from the center, re-ask for input.
-//            if (Math.abs(row - 10) <= 3 && Math.abs(col - 10) <= 3) {
-//                showComment(
-//                        "White cannot put its piece within 3 steps of the center on its second turn. Re-input your position.");
-//                return false;
-//            }
-//        }
-//
-//        // Case when it is valid
+    public boolean checkValidity(Round r) {
+        // When is a position valid?
+        // Private members 'row' and 'col' hold the inputted values.
+        // The position must be within bounds and empty.
+
+        // For the second turn of White ('W'), it must be placed 3 steps away from the
+        // center.
+        // In the 'ComputerStrategy' class, you can account for this rule by giving
+        // negative priorities to positions within 3 intersections of the center.
+
+        if (r.getTurnNum() == 2 && r.getCurrentPlayer().getColor() == 'W') {
+            // If a human inputs within 3 steps from the center, re-ask for input.
+            if (Math.abs(row - 10) <= 3 && Math.abs(col - 10) <= 3) {
+                showComment(
+                        "White cannot put its piece within 3 steps of the center on its second turn. Re-input your position.");
+                return false;
+            }
+        }
+
+        // Case when it is valid
 //        if (isWithinBounds(row, col) && getPiece(row, col) == '0') {
 //            return true;
 //        }
@@ -83,15 +91,15 @@ public class Board {
 //            showComment("Out of Bounds");
 //            return false;
 //        }
-//
-//        // We would have returned from this function if the position was valid or out of
-//        // bounds,
-//        // so at this point, the position is not empty, which accounts for its
-//        // invalidity.
+
+        // We would have returned from this function if the position was valid or out of
+        // bounds,
+        // so at this point, the position is not empty, which accounts for its
+        // invalidity.
 //        showComment("Position not empty!");
-//        return false;
-//    }
-//
+        return true;
+    }
+
     public boolean checkAndCapture(Round r, Player p, Player e) {
         int[][] directions = { { 0, 1 }, { 1, 0 }, { 1, 1 }, { 1, -1 } };
         boolean gameEnd = false;
@@ -321,29 +329,35 @@ public class Board {
 //
     public boolean placeYourPiece(Round r, Tournament t, Activity a) {
         // Place the piece in the specified row and column on the board
-        if (r.getTurnNum() == 0 && r.getCurrentPlayer().getColor() == 'W') {
-            board[10][10] = 'W';
-        } else {
-            board[this.row][this.col] = r.getCurrentPlayer().getColor();
 
-            // Check for pairs to capture
-            if (checkAndCapture(r, r.getCurrentPlayer(), r.getNextPlayer())) {
-                // Count the fours and update in the round
-                checkForFours(r, r.getCurrentPlayer().getColor(), r.getCurrentPlayer());
-                checkForFours(r, r.getNextPlayer().getColor(), r.getNextPlayer());
+            if (r.getTurnNum() == 0 && r.getCurrentPlayer().getColor() == 'W') {
+                board[10][10] = 'W';
+            } else {
+                board[this.row][this.col] = r.getCurrentPlayer().getColor();
+
+                // Check for pairs to capture
+                if (checkAndCapture(r, r.getCurrentPlayer(), r.getNextPlayer())) {
+                    // Count the fours and update in the round
+                    checkForFours(r, r.getCurrentPlayer().getColor(), r.getCurrentPlayer());
+                    checkForFours(r, r.getNextPlayer().getColor(), r.getNextPlayer());
 //                r.determineWinnerOfTheRound();
-                r.changeTurn();
-                return false;
+                    r.changeTurn();
+                    return false;
+                }
+
+                // Check for 5 consecutive pieces, if found, the game terminates
+                if (checkForFive(r, t)) {
+                    checkForFours(r, r.getCurrentPlayer().getColor(), r.getCurrentPlayer());
+                    checkForFours(r, r.getNextPlayer().getColor(), r.getNextPlayer());
+                    r.changeTurn();
+                    return false;
+                }
             }
 
-            // Check for 5 consecutive pieces, if found, the game terminates
-            if (checkForFive(r, t)) {
-                checkForFours(r, r.getCurrentPlayer().getColor(), r.getCurrentPlayer());
-                checkForFours(r, r.getNextPlayer().getColor(), r.getNextPlayer());
-                r.changeTurn();
-                return false;
-            }
-        }
+
+
+
+
 
         r.changeTurn();
 //        ((PenteBoard) a).initBoard();

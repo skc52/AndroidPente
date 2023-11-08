@@ -46,7 +46,7 @@ public class Round implements Serializable {
     }
 //
 //    returns true if human started the round
-    public Boolean startRound(Tournament t, Board b, Scanner scanner, char humanChoice, Activity a) {
+    public Boolean startRound(Tournament t, Board b, char humanChoice, Activity a) {
         System.out.println("Starting round " + t.getRoundsCount() + ".");
         b.resetBoard();
         Boolean toss = false;
@@ -342,12 +342,12 @@ public class Round implements Serializable {
 //        // scanner.close();
 //    }
 //
-//    public void determineWinnerOfTheRound() {
-//        // Winner of The Round is the player with the most scores in the round
+    public void determineWinnerOfTheRound() {
+        // Winner of The Round is the player with the most scores in the round
 //        System.out.println("current player name:" + currentPlayer.getName());
-//        winnerOfTheRound = getRoundEndScore(currentPlayer) < getRoundEndScore(nextPlayer) ? nextPlayer : currentPlayer;
-//        loserOfTheRound = (winnerOfTheRound == currentPlayer) ? nextPlayer : currentPlayer;
-//    }
+        winnerOfTheRound = getRoundEndScore(currentPlayer) < getRoundEndScore(nextPlayer) ? nextPlayer : currentPlayer;
+        loserOfTheRound = (winnerOfTheRound == currentPlayer) ? nextPlayer : currentPlayer;
+    }
 //
     public void incrementTurnNum() {
         currentTurnNum++;
@@ -382,11 +382,11 @@ public class Round implements Serializable {
         return nextPlayer;
     }
 
-//    public Player getWinner() {
-//        return winnerOfTheRound;
-//    }
+    public Player getWinner() {
+        return winnerOfTheRound;
+    }
 //
-//    public Player getLoser() {
-//        return loserOfTheRound;
-//    }
+    public Player getLoser() {
+        return loserOfTheRound;
+    }
 }

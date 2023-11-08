@@ -79,7 +79,7 @@
         <GridLayout
             android:id="@+id/penteBoard"
             android:layout_width="400dp"
-            android:layout_height="400dp"
+            android:layout_height="401dp"
             android:columnCount="19"
             android:padding="4dp"
             android:rowCount="19">
@@ -125,6 +125,56 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.982"
         app:layout_constraintStart_toEndOf="@+id/humanColor" />
+    <TextView
+        android:id="@+id/humanCapturedPairs"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Human Captured Pairs: 0"
+        android:textColor="@color/white"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/frameLayout"
+        android:layout_marginTop="16dp" />
 
+    <TextView
+        android:id="@+id/computerCapturedPairs"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Computer Captured Pairs: 0"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/frameLayout"
+        android:layout_marginTop="16dp" />
+
+    <TextView
+        android:id="@+id/humanTotalScore"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Human Total Score: 0"
+        android:textColor="@color/white"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/humanCapturedPairs"
+        android:layout_marginTop="8dp" />
+
+    <TextView
+        android:id="@+id/computerTotalScore"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Computer Total Score: 0"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/computerCapturedPairs"
+        android:layout_marginTop="8dp" />
+
+    <Button
+        android:id="@+id/helpBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="168dp"
+        android:text="Help"
+        app:layout_constraintEnd_toStartOf="@+id/saveGame"
+        app:layout_constraintHorizontal_bias="0.25"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

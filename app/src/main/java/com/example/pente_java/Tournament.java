@@ -11,6 +11,7 @@ import java.util.Scanner;
 import java.io.Serializable;
 public class Tournament  implements Serializable {
     private Map<Player, Integer> loadedScores;
+
     private Player human;
     private Player computer;
     private List<Round> rounds;
@@ -32,26 +33,55 @@ public class Tournament  implements Serializable {
         int totalScore = 0;
         int roundsCount = rounds.size();
 
-//        for (int i = 0; i < roundsCount; i++) {
-//            Round r = rounds.get(i);
-//
-//            // If saving is true and it's the current round, then don't include its score
+        for (int i = 0; i < roundsCount; i++) {
+            Round r = rounds.get(i);
+
+            // If saving is true and it's the current round, then don't include its score
 //            if (saving && i == roundsCount - 1) {
 //                break;
 //            }
-//
-//            totalScore += r.getPairsCapturedNum(p);
-//            totalScore += r.getFourConsecutivesNum(p);
-//            totalScore += r.getGamePoints(p);
-//        }
-//
-//        // Include the loaded scores from saved games
+
+            totalScore += r.getPairsCapturedNum(p);
+            totalScore += r.getFourConsecutivesNum(p);
+            totalScore += r.getGamePoints(p);
+        }
+
+        // Include the loaded scores from saved games
 //        if (loadedScores.containsKey(p)) {
 //            totalScore += loadedScores.get(p);
 //        }
 
         return totalScore;
     }
+
+    public int[] getFinalScores(Player p, boolean saving) {
+
+        int totalCaptureScore = 0;
+        int totalFourConsScore = 0;
+        int totalFiveConsScore = 0;
+        int roundsCount = rounds.size();
+
+        for (int i = 0; i < roundsCount; i++) {
+            Round r = rounds.get(i);
+
+            // If saving is true and it's the current round, then don't include its score
+//            if (saving && i == roundsCount - 1) {
+//                break;
+//            }
+
+            totalCaptureScore += r.getPairsCapturedNum(p);
+            totalFourConsScore += r.getFourConsecutivesNum(p);
+            totalFiveConsScore += r.getGamePoints(p);
+        }
+
+        // Include the loaded scores from saved games
+//        if (loadedScores.containsKey(p)) {
+//            totalScore += loadedScores.get(p);
+//        }
+        int[] allFinalScores = {totalCaptureScore+ totalFiveConsScore + totalFourConsScore, totalCaptureScore, totalFourConsScore, totalFiveConsScore};
+        return allFinalScores;
+    }
+
 //
 //    public void showTotalScoresForBoth() {
 //        System.out.println("Showing Tournament Scores:");

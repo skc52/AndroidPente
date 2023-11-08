@@ -54,11 +54,24 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Computer Score: 0" />
+
+    <TextView
+        android:id="@+id/winnerDeclaration"
+        android:layout_width="wrap_content"
+        android:textSize="24sp"
+        android:layout_height="wrap_content"
+        android:text="Winner: " />
     <!-- Add more TextViews for other scores if needed -->
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Close"
-        android:id="@+id/closeButton" />
+        android:text="Quit Tournament"
+        android:id="@+id/quitTournament" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Continue Tournament"
+        android:id="@+id/continueTournament" />
 </LinearLayout>
