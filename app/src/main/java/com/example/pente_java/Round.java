@@ -46,25 +46,25 @@ public class Round implements Serializable {
     }
 //
 //    returns true if human started the round
-    public Boolean startRound(Tournament t, Board b, char humanChoice, Activity a) {
-        System.out.println("Starting round " + t.getRoundsCount() + ".");
+    public void startRound(Tournament t, Board b, char cPlayerInitial, Activity a) {
+//        System.out.println("Starting round " + t.getRoundsCount() + ".");
         b.resetBoard();
-        Boolean toss = false;
+//        Boolean toss = false;
         // Initialize white and black players
-        if (t.getRoundsCount() == 1
-                || t.getTotalScores(t.getHuman(), false) == t.getTotalScores(t.getComputer(), false)) {
-            // If it's the first round or scores are the same, toss a coin to determine the
-            // starter
-            toss = coinToss(humanChoice);
-            if (toss) { // On winning the coin toss, white will be the human
-                currentPlayer = t.getHuman();
-                nextPlayer = t.getComputer();
-            } else {
-                currentPlayer = t.getComputer();
-                nextPlayer = t.getHuman();
-            }
-        } else {
-            if (t.getTotalScores(t.getHuman(), false) > t.getTotalScores(t.getComputer(), false)) {
+//        if (t.getRoundsCount() == 1
+//                || t.getTotalScores(t.getHuman(), false) == t.getTotalScores(t.getComputer(), false)) {
+//            // If it's the first round or scores are the same, toss a coin to determine the
+//            // starter
+//            toss = coinToss(humanChoice);
+//            if (toss) { // On winning the coin toss, white will be the human
+//                currentPlayer = t.getHuman();
+//                nextPlayer = t.getComputer();
+//            } else {
+//                currentPlayer = t.getComputer();
+//                nextPlayer = t.getHuman();
+//            }
+//        } else {
+            if (cPlayerInitial == 'H') {
                 // If scores are different, the higher scorer is the starter
                 currentPlayer = t.getHuman();
                 nextPlayer = t.getComputer();
@@ -72,14 +72,14 @@ public class Round implements Serializable {
                 nextPlayer = t.getHuman();
                 currentPlayer = t.getComputer();
             }
-        }
+//        }
 
         currentPlayer.setColor('W');
         nextPlayer.setColor('B');
-        System.out.println(currentPlayer.getName() + " is starting the game");
+//        System.out.println(currentPlayer.getName() + " is starting the game");
         currentPlayer.makeMove(10, 10, this, b, null, t, a);
 //        changeTurn();
-        return toss;
+//        return toss;
     }
 
     public void changeTurn() {
@@ -302,45 +302,45 @@ public class Round implements Serializable {
         gamePoints.put(p, 5);
     }
 //
-//    public void saveGameToFile(Board b, Player human, Player computer, Tournament t, Scanner scanner) {
-//        // Ask the name for the txt file
-//        // Scanner scanner = new Scanner(System.in);
-//        System.out.println("Enter the name for a file for this game to be saved");
-//        String fileName = scanner.next();
-//
-//        // Save the board into the txt file
-//        try (PrintWriter outputFile = new PrintWriter(fileName + ".txt")) {
-//            outputFile.println("Board:");
-//            for (int i = 1; i < 20; i++) {
-//                for (int j = 1; j < 20; j++) {
-//                    if (b.getPiece(i, j) == '0') {
-//                        outputFile.print('O');
-//                    } else {
-//                        outputFile.print(b.getPiece(i, j));
-//                    }
-//                }
-//                outputFile.println();
-//            }
-//            outputFile.println("Human:");
-//            outputFile.println("Captured pairs: " + getPairsCapturedNum(human));
-//            outputFile.println("Score: " + t.getTotalScores(human, true));
-//            outputFile.println();
-//
-//            outputFile.println("Computer:");
-//            outputFile.println("Captured pairs: " + getPairsCapturedNum(computer));
-//            outputFile.println("Score: " + t.getTotalScores(computer, true));
-//            outputFile.println();
-//
-//            String colorNext = currentPlayer.getColor() == 'W' ? "White" : "Black";
-//            String nextPlayerCategory = currentPlayer.getName().equals("ROBOT") ? "Computer" : "Human";
-//            outputFile.println("Next Player: " + nextPlayerCategory + " - " + colorNext);
-//            System.out.println("File written successfully.");
-//        } catch (FileNotFoundException e) {
-//            System.err.println("Error opening the file.");
-//        }
-//
-//        // scanner.close();
-//    }
+    public void saveGameToFile(Board b, Player human, Player computer, Tournament t, Scanner scanner) {
+        // Ask the name for the txt file
+        // Scanner scanner = new Scanner(System.in);
+        System.out.println("Enter the name for a file for this game to be saved");
+        String fileName = scanner.next();
+
+        // Save the board into the txt file
+        try (PrintWriter outputFile = new PrintWriter(fileName + ".txt")) {
+            outputFile.println("Board:");
+            for (int i = 1; i < 20; i++) {
+                for (int j = 1; j < 20; j++) {
+                    if (b.getPiece(i, j) == '0') {
+                        outputFile.print('O');
+                    } else {
+                        outputFile.print(b.getPiece(i, j));
+                    }
+                }
+                outputFile.println();
+            }
+            outputFile.println("Human:");
+            outputFile.println("Captured pairs: " + getPairsCapturedNum(human));
+            outputFile.println("Score: " + t.getTotalScores(human, true));
+            outputFile.println();
+
+            outputFile.println("Computer:");
+            outputFile.println("Captured pairs: " + getPairsCapturedNum(computer));
+            outputFile.println("Score: " + t.getTotalScores(computer, true));
+            outputFile.println();
+
+            String colorNext = currentPlayer.getColor() == 'W' ? "White" : "Black";
+            String nextPlayerCategory = currentPlayer.getName().equals("ROBOT") ? "Computer" : "Human";
+            outputFile.println("Next Player: " + nextPlayerCategory + " - " + colorNext);
+            System.out.println("File written successfully.");
+        } catch (FileNotFoundException e) {
+            System.err.println("Error opening the file.");
+        }
+
+        // scanner.close();
+    }
 //
     public void determineWinnerOfTheRound() {
         // Winner of The Round is the player with the most scores in the round

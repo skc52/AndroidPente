@@ -97,7 +97,7 @@ public class ComputerStrategy {
             }
         }
 
-        setFinalReason(finalReason);
+        setFinalReason("(" + String.valueOf(bestRow) + "," + String.valueOf(bestCol) + ")" + finalReason);
         return convertPosToString(bestRow, bestCol);
     }
 //

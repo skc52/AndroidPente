@@ -2,11 +2,17 @@ package com.example.pente_java;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
@@ -18,17 +24,109 @@ import android.widget.Toast;
 
 import org.w3c.dom.Text;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.util.Random;
 import java.util.Scanner;
 
 public class PenteBoard extends AppCompatActivity {
+    private static final int REQUEST_CODE_SAVE_FILE = 2;
     private Board b;
     private Tournament t;
     private Round r;
     private Player h;
     private Player c;
     private char humanChoice;
+    private int suggestedRow = -1;
+    private int suggestedCol = -1;
 
     private ComputerStrategy s;
+
+
+
+    private static boolean isExternalStorageReadOnly() {
+        String extStorageState = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(extStorageState)) {
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean isExternalStorageAvailable() {
+        String extStorageState = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(extStorageState)) {
+            return true;
+        }
+        return false;
+    }
+
+    private String filename = "SampleFile.txt";
+    private String filepath = "MyFileStorage";
+
+    File myExternalFile;
+    private boolean isExternalStorageWritable() {
+        String state = Environment.getExternalStorageState();
+        return Environment.MEDIA_MOUNTED.equals(state);
+    }
+    private void saveGameToFile(Board b, Player human, Player computer, Tournament t) {
+
+        // on below line creating and initializing variable for context wrapper.
+        ContextWrapper contextWrapper = new ContextWrapper(getApplicationContext());
+        // on below line creating a directory for file and specifying the file name.
+        File directory = contextWrapper.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+        // on below line creating a text file.
+        File txtFile = new File(directory, "file" + ".txt");
+        // on below line writing the text to our file.
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(txtFile);
+            OutputStreamWriter osw = new OutputStreamWriter(fos);
+            osw.write("hello");
+            osw.flush();
+            osw.close();
+            fos.close();
+            Toast.makeText(contextWrapper, "File write successful..", Toast.LENGTH_SHORT).show();
+//            msgEdt.setText("");
+        } catch (Exception e) {
+            // on below line handling the exception.
+            e.printStackTrace();
+        }
+    }
+
+
+    // Define a method to build your game data as a string
+    private String buildGameData(Board b, Player human, Player computer, Tournament t) {
+        StringBuilder gameData = new StringBuilder();
+        gameData.append("Board:\n");
+        for (int i = 1; i < 20; i++) {
+            for (int j = 1; j < 20; j++) {
+                if (b.getPiece(i, j) == '0') {
+                    gameData.append('O');
+                } else {
+                    gameData.append(b.getPiece(i, j));
+                }
+            }
+            gameData.append("\n");
+        }
+
+        gameData.append("Human:\n");
+        gameData.append("Captured pairs: " + r.getPairsCapturedNum(human) + "\n");
+        gameData.append("Score: " + t.getTotalScores(human, true) + "\n\n");
+
+        gameData.append("Computer:\n");
+        gameData.append("Captured pairs: " + r.getPairsCapturedNum(computer) + "\n");
+        gameData.append("Score: " + t.getTotalScores(computer, true) + "\n\n");
+
+        String colorNext = r.getCurrentPlayer().getColor() == 'W' ? "White" : "Black";
+        String nextPlayerCategory = r.getCurrentPlayer().getName().equals("ROBOT") ? "Computer" : "Human";
+        gameData.append("Next Player: " + nextPlayerCategory + " - " + colorNext);
+
+        return gameData.toString();
+    }
     private void showTournamentEndDialog(
         int humanScore, int computerScore,
         int humanCapturedPairs, int humanConsecutiveFours, int humanGamePoints,
@@ -76,8 +174,8 @@ public class PenteBoard extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 dialog.dismiss();
-//                Intent intent = new Intent(PenteBoard.this, MainActivity.class);
-//                startActivity(intent);
+                Intent intent = new Intent(PenteBoard.this, MainActivity.class);
+                startActivity(intent);
             }
         });
     }
@@ -87,29 +185,98 @@ public class PenteBoard extends AppCompatActivity {
         View dialogView = getLayoutInflater().inflate(R.layout.coin_toss, null);
         builder.setView(dialogView);
 
+        TextView humanColor = findViewById(R.id.humanColor);
+        TextView computerColor = findViewById(R.id.computerColor);
+
+
         Button headsButton = dialogView.findViewById(R.id.headsBtn);
         Button tailsButton = dialogView.findViewById(R.id.tailsBtn);
+        Button closeBtn = dialogView.findViewById(R.id.closeBtn);
         TextView coinTossResult = dialogView.findViewById(R.id.coinTossResult);
         final AlertDialog dialog = builder.create();
-
+        humanChoice = 'X';
         headsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                headsButton.setVisibility(View.GONE);
+                tailsButton.setVisibility(View.GONE);
                 humanChoice = 'H';
-                r.startRound(t, b, humanChoice,PenteBoard.this);
-                dialog.dismiss();
+                closeBtn.setVisibility(View.VISIBLE);
+
+                Random rand = new Random();
+                char toss = (rand.nextInt(2) == 0) ? 'H' : 'T';
+                coinTossResult.setVisibility(View.VISIBLE);
+                if (humanChoice == toss) {
+                    coinTossResult.setText("Human won the toss! Human is starting the round!");
+                    r.startRound(t, b, 'H',PenteBoard.this);
+                    h.setBackground(R.drawable.white_piece);
+                    c.setBackground(R.drawable.black_piece);
+
+                    humanColor.setText("Human: WHITE");
+                    computerColor.setText("Computer: BLACK");
+
+                } else {
+                    coinTossResult.setText("Computer won the toss! Computer is starting the round!");
+                    r.startRound(t, b, 'C',PenteBoard.this);
+                    //set Human:Black
+                    //set Computer: White
+                    h.setBackground(R.drawable.black_piece);
+                    c.setBackground(R.drawable.white_piece);
+                    humanColor.setText("Human: BLACK");
+                    computerColor.setText("Computer: WHITE");
+
+
+                }
+                initBoard();;
+
+//                dialog.dismiss();
             }
         });
 
         tailsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                headsButton.setVisibility(View.GONE);
+                tailsButton.setVisibility(View.GONE);
+
                 humanChoice = 'T';
-                r.startRound(t, b, humanChoice,PenteBoard.this);
-                dialog.dismiss();
+//                dialog.dismiss();
+                closeBtn.setVisibility(View.VISIBLE);
+                Random rand = new Random();
+                char toss = (rand.nextInt(2) == 0) ? 'H' : 'T';
+                coinTossResult.setVisibility(View.VISIBLE);
+                if (humanChoice == toss) {
+                    coinTossResult.setText("Human won the toss! Human is starting the round!");
+                    r.startRound(t, b, 'H',PenteBoard.this);
+                    h.setBackground(R.drawable.white_piece);
+                    c.setBackground(R.drawable.black_piece);
+                    humanColor.setText("Human: WHITE");
+                    computerColor.setText("Computer: BLACK");
+                } else {
+                    coinTossResult.setText("Computer won the toss! Computer is starting the round!");
+                    r.startRound(t, b, 'C',PenteBoard.this);
+                    //set Human:Black
+                    //set Computer: White
+                    h.setBackground(R.drawable.black_piece);
+                    c.setBackground(R.drawable.white_piece);
+                    humanColor.setText("Human: BLACK");
+                    computerColor.setText("Computer: WHITE");
+                }
+                initBoard();
             }
         });
 
+
+
+
+
+        closeBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+
+            }
+        });
         dialog.show();
     }
 
@@ -134,6 +301,9 @@ public class PenteBoard extends AppCompatActivity {
 
         Button quitBtn = dialogView.findViewById(R.id.quitTournament);
         Button continueBtn = dialogView.findViewById(R.id.continueTournament);
+
+        TextView humanColor = findViewById(R.id.humanColor);
+        TextView computerColor = findViewById(R.id.computerColor);
 
         // Find the Close Button
 
@@ -176,7 +346,20 @@ public class PenteBoard extends AppCompatActivity {
                 else{
                     //no coin toss needed
 //                    showCoinTossDialog();
-                    r.startRound(t, b, 'H',PenteBoard.this);
+                    if (t.getTotalScores(h, false) < t.getTotalScores(c, false)){
+                        r.startRound(t, b, 'C',PenteBoard.this);
+                        humanColor.setText("Human: BLACK");
+                        computerColor.setText("Computer: WHITE");
+                        h.setBackground(R.drawable.black_piece);
+                        c.setBackground(R.drawable.white_piece);
+                    }
+                    else{
+                        r.startRound(t, b, 'H',PenteBoard.this);
+                        humanColor.setText("Human: WHITE");
+                        computerColor.setText("Computer: BLACK");
+                        h.setBackground(R.drawable.white_piece);
+                        c.setBackground(R.drawable.black_piece);
+                    }
                 }
                 initBoard();
 
@@ -190,17 +373,58 @@ public class PenteBoard extends AppCompatActivity {
         //  now show the board
         //  now show the board
 
+
         TextView humanCapturedPairsTextView = findViewById(R.id.humanCapturedPairs);
         TextView computerCapturedPairsTextView = findViewById(R.id.computerCapturedPairs);
         TextView humanTotalScoreTextView = findViewById(R.id.humanTotalScore);
         TextView computerTotalScoreTextView = findViewById(R.id.computerTotalScore);
+        TextView reasonTextView = findViewById(R.id.reason);
+        TextView humanColor = findViewById(R.id.humanColor);
+        TextView computerColor = findViewById(R.id.computerColor);
+
         Button helpBtn = findViewById(R.id.helpBtn);
+        Button saveGameBtn = findViewById(R.id.saveGame);
+
+        if (!isExternalStorageAvailable() || isExternalStorageReadOnly()) {
+            saveGameBtn.setEnabled(false);
+        }
+
+
+        helpBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String inputString = s.determineBestPosition(b, r.getCurrentPlayer(), r.getNextPlayer(), r);
+                //parse into row and col
+                char colChar = Character.toUpperCase(inputString.charAt(0));
+                int numericEquivalent = colChar - 'A' + 1;
+                suggestedCol = numericEquivalent;
+
+                String rowString = inputString.substring(1);
+                suggestedRow = b.getBoardDimension() - Integer.parseInt(rowString);
+                reasonTextView.setText("Suggested position is " + s.getFinalReason());
+
+                initBoard();
+            }
+        });
+        saveGameBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saveGameToFile(b, h, c, t);
+            }
+        });
+        humanColor.setVisibility(View.VISIBLE);
+        computerColor.setVisibility(View.VISIBLE);
+
+        humanCapturedPairsTextView.setVisibility(View.VISIBLE);
+        computerCapturedPairsTextView.setVisibility(View.VISIBLE);
+        humanTotalScoreTextView.setVisibility(View.VISIBLE);
+        computerTotalScoreTextView.setVisibility(View.VISIBLE);
+        reasonTextView.setVisibility(View.VISIBLE);
 
         humanCapturedPairsTextView.setText("Human Captured Pairs: " + Integer.toString(r.getPairsCapturedNum(h)));
-        computerCapturedPairsTextView.setText("Computer Captured Pairs" + Integer.toString(r.getPairsCapturedNum(c)));
+        computerCapturedPairsTextView.setText("Computer Captured Pairs: " + Integer.toString(r.getPairsCapturedNum(c)));
         humanTotalScoreTextView.setText("Human Total Score: " + Integer.toString(t.getTotalScores(h, false)) + "  ");
-        computerTotalScoreTextView.setText("Computer Total Score"  + Integer.toString(t.getTotalScores(c, false)) + "  ");
-
+        computerTotalScoreTextView.setText("Computer Total Score: "  + Integer.toString(t.getTotalScores(c, false)) + "  ");
 
         GridLayout penteBoard = findViewById(R.id.penteBoard);
         penteBoard.removeAllViews();
@@ -208,7 +432,6 @@ public class PenteBoard extends AppCompatActivity {
         for (int row = 0; row < b.getBoardDimension()-1; row++) {
             for (int col = 0; col < b.getBoardDimension()-1; col++) {
                 Button button = new Button(PenteBoard.this);
-
                 // Set button properties
                 button.setLayoutParams(new GridLayout.LayoutParams());
                 int margin = 100; // Set your desired margin value
@@ -222,6 +445,9 @@ public class PenteBoard extends AppCompatActivity {
                 else{
                     button.setBackgroundResource(R.drawable.black_piece); // Custom background drawable
                 }
+                if (row+1 == suggestedRow && col+1 == suggestedCol){
+                    button.setBackgroundResource(R.drawable.yellow_piece); // Custom background drawable
+                }
 
                 // Define the layout parameters for positioning in the GridLayout
                 GridLayout.Spec rowSpec = GridLayout.spec(row, 1f); // 1f means equal distribution
@@ -229,7 +455,6 @@ public class PenteBoard extends AppCompatActivity {
                 GridLayout.LayoutParams params = new GridLayout.LayoutParams(rowSpec, colSpec);
                 params.width = 0;
                 params.height = 0;
-
                 button.setLayoutParams(params);
 
                 // Add the button to the GridLayout
@@ -243,7 +468,9 @@ public class PenteBoard extends AppCompatActivity {
                     public void onClick(View v) {
                         //check if second turn of white and withing 3 steps from j10
 
-
+                        //reset suggested pos, so that we are not stuck with yellow piece for that pos even after clicling on it
+                        suggestedCol = -1;
+                        suggestedRow = -1;
 
                         //change turn
                         if (b.getPiece(finalRow+1, finalCol+1)!='0'){
@@ -256,22 +483,30 @@ public class PenteBoard extends AppCompatActivity {
                         }
                         else{
 //                            Toast.makeText(getApplicationContext(), r.getCurrentPlayer().getName(), Toast.LENGTH_SHORT).show();
-
                             button.setBackgroundResource(r.getCurrentPlayer().getBackground());
-                            if (!r.getCurrentPlayer().makeMove(finalRow+1, finalCol+1, r, b, s, t, PenteBoard.this)){
-                                //TODO go to a new intent
+                            if (!r.getCurrentPlayer().makeMove(finalRow+1, finalCol+1, r, b, s, t, PenteBoard.this)) {
+
 //                                display round end scores
 //                                show option to play a new game or quit the game
 //                                if new game is clicked, re intent back to this page
 //                                else show the overall tournament scores and end the game
                                 r.determineWinnerOfTheRound();
-                               scoreDialog();
+                                scoreDialog();
                             }
+                            reasonTextView.setText("Computer placed on " + s.getFinalReason());
 
-                            Toast.makeText(getApplicationContext(), "Placed on Clicked: Row " + finalRow + ", Column " + finalCol, Toast.LENGTH_SHORT).show();
+//                            Toast.makeText(getApplicationContext(), "Placed on Clicked: Row " + finalRow + ", Column " + finalCol, Toast.LENGTH_SHORT).show();
 
-                            initBoard();
-
+                            //TODO wait for 1 second
+                            // Define a Handler and a Runnable to delay computer move
+                            Handler handler = new Handler();
+                            Runnable delayComputerMove = new Runnable() {
+                                @Override
+                                public void run() {
+                                    initBoard();
+                                }
+                            };
+                            handler.postDelayed(delayComputerMove, 200);
 
                         }
 
@@ -281,24 +516,12 @@ public class PenteBoard extends AppCompatActivity {
                 //we want the computer to play on its own without having us to click on the cells
                 if (r.getCurrentPlayer() == c) {
                     if (!r.getCurrentPlayer().makeMove(-10, -10, r, b, s, t, PenteBoard.this)){
-                        //TODO go to a new intent
-//                                display round end scores
-//                                show option to play a new game or quit the game
-//                                if new game is clicked, re intent back to this page
-//                                else show the overall tournament scores and end the game
-//                        Intent intent = new Intent(PenteBoard.this, RoundEnd.class);
-////                        intent.putExtra("round", r);
-////                        intent.putExtra("tournament", t);
-//
-//                        startActivity(intent);
                         r.determineWinnerOfTheRound();
                         scoreDialog();
 
                     }
                     initBoard();
                 }
-
-
             }
         }
     }
@@ -316,74 +539,6 @@ public class PenteBoard extends AppCompatActivity {
         s = new ComputerStrategy(t);
         t.setUpPlayers(h, c);
 
-        //toss coin and show who won
-        Button headsBtn = findViewById(R.id.headsBtn);
-        Button tailsBtn = findViewById(R.id.tailsBtn);
-        TextView coinTossText = findViewById(R.id.coinTossText);
-        TextView humanColor = findViewById(R.id.humanColor);
-        TextView computerColor = findViewById(R.id.computerColor);
-
-
-        // Define a Handler and a Runnable to hide the widgets
-        Handler handler = new Handler();
-        Runnable hideWidgetsRunnable = new Runnable() {
-            @Override
-            public void run() {
-                headsBtn.setVisibility(View.GONE);
-                tailsBtn.setVisibility(View.GONE);
-                coinTossText.setVisibility(View.GONE);
-
-                //init boardview
-                initBoard();
-            }
-        };
-
-        View.OnClickListener coinTossListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String buttonLabel = (String) v.getTag(); // Assuming you set a tag on your buttons
-
-                // Create an Intent to open the new activity
-                // Toss the coin
-//                Round r = new Round();
-                Scanner scanner = new Scanner(System.in);
-                humanColor.setVisibility(View.VISIBLE);
-                computerColor.setVisibility(View.VISIBLE);
-                // Coin toss returns true if the user won
-
-                if (r.startRound(t,b, buttonLabel.charAt(0), PenteBoard.this)) {
-                    //set Human:White
-                    //set Computer: Black
-                    humanColor.setText("Human:White");
-                    computerColor.setText("Computer:Black");
-                    coinTossText.setText("Winner: Human (" + buttonLabel + ")");
-                    h.setBackground(R.drawable.white_piece);
-                    c.setBackground(R.drawable.black_piece);
-                } else {
-                    //set Human:Black
-                    //set Computer: White
-                    humanColor.setText("Human:Black");
-                    computerColor.setText("Computer:White");
-                    coinTossText.setText("Winner: Computer (" + buttonLabel + ")");
-                    h.setBackground(R.drawable.black_piece);
-                    c.setBackground(R.drawable.white_piece);
-                }
-
-
-                // Use the Handler to post the Runnable with a delay of 2000 milliseconds (2 seconds)
-                handler.postDelayed(hideWidgetsRunnable, 2000);
-            }
-        };
-
-        headsBtn.setTag("Heads"); // Set a tag to identify the button
-        tailsBtn.setTag("Tails"); // Set a tag to identify the button
-
-        headsBtn.setOnClickListener(coinTossListener);
-        tailsBtn.setOnClickListener(coinTossListener);
-
-
-
-
-
+        showCoinTossDialog();
     }
 }

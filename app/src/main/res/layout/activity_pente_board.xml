@@ -19,16 +19,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/coinTossText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="144dp"
-        android:text="Toss Winner:?"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.526"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+
 
     <Button
         android:id="@+id/saveGame"
@@ -41,24 +32,9 @@
         app:layout_constraintStart_toEndOf="@+id/titleName"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
-        android:id="@+id/headsBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Heads"
-        app:layout_constraintEnd_toStartOf="@+id/tailsBtn"
-        app:layout_constraintHorizontal_bias="0.37"
-        app:layout_constraintStart_toStartOf="parent"
-        tools:layout_editor_absoluteY="52dp" />
 
-    <Button
-        android:id="@+id/tailsBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="96dp"
-        android:text="Tails"
-        app:layout_constraintEnd_toEndOf="parent"
-        tools:layout_editor_absoluteY="52dp" />
+
+
 
     <FrameLayout
         android:id="@+id/frameLayout"
@@ -130,6 +106,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Human Captured Pairs: 0"
+        android:visibility="gone"
         android:textColor="@color/white"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/frameLayout"
@@ -141,6 +118,8 @@
         android:layout_height="wrap_content"
         android:text="Computer Captured Pairs: 0"
         android:textColor="@color/white"
+        android:visibility="gone"
+
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/frameLayout"
         android:layout_marginTop="16dp" />
@@ -151,6 +130,8 @@
         android:layout_height="wrap_content"
         android:text="Human Total Score: 0"
         android:textColor="@color/white"
+        android:visibility="gone"
+
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/humanCapturedPairs"
         android:layout_marginTop="8dp" />
@@ -161,9 +142,25 @@
         android:layout_height="wrap_content"
         android:text="Computer Total Score: 0"
         android:textColor="@color/white"
+        android:visibility="gone"
+
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/computerCapturedPairs"
         android:layout_marginTop="8dp" />
+
+    <TextView
+        android:id="@+id/reason"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="48dp"
+        android:text="Reason: "
+        android:visibility="gone"
+
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.476"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/helpBtn"
