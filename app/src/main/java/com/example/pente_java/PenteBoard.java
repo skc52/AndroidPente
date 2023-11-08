@@ -14,9 +14,12 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -24,9 +27,11 @@ import android.widget.Toast;
 
 import org.w3c.dom.Text;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -64,7 +69,7 @@ public class PenteBoard extends AppCompatActivity {
         return false;
     }
 
-    private String filename = "SampleFile.txt";
+//    private String filename = "SampleFile.txt";
     private String filepath = "MyFileStorage";
 
     File myExternalFile;
@@ -72,20 +77,22 @@ public class PenteBoard extends AppCompatActivity {
         String state = Environment.getExternalStorageState();
         return Environment.MEDIA_MOUNTED.equals(state);
     }
-    private void saveGameToFile(Board b, Player human, Player computer, Tournament t) {
+    private void saveGameToFile(Board b, Player human, Player computer, Tournament t, String filename) {
 
         // on below line creating and initializing variable for context wrapper.
         ContextWrapper contextWrapper = new ContextWrapper(getApplicationContext());
         // on below line creating a directory for file and specifying the file name.
         File directory = contextWrapper.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
         // on below line creating a text file.
-        File txtFile = new File(directory, "file" + ".txt");
+        File txtFile = new File(directory, filename + ".txt");
         // on below line writing the text to our file.
         FileOutputStream fos = null;
+        String gameData = buildGameData(b, human, computer, t); // Customize this method to build your game data
+
         try {
             fos = new FileOutputStream(txtFile);
             OutputStreamWriter osw = new OutputStreamWriter(fos);
-            osw.write("hello");
+            osw.write(gameData);
             osw.flush();
             osw.close();
             fos.close();
@@ -369,6 +376,58 @@ public class PenteBoard extends AppCompatActivity {
         dialog.show();
 
     }
+
+    private void askFileNameDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.ask_filename_save, null);
+        builder.setView(dialogView);
+
+
+        EditText filenameEditText = dialogView.findViewById(R.id.filenameEditText);
+        Button saveGameBtn = dialogView.findViewById(R.id.saveGameBtn);
+        Button cancelSaveBtn = dialogView.findViewById(R.id.cancelSavingBtn);
+
+        saveGameBtn.setEnabled(false);
+        final AlertDialog dialog = builder.create();
+        dialog.setCanceledOnTouchOutside(false);
+
+        filenameEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                // Not needed for this example, but you must implement it.
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                // Check the text in filenameEditText and enable/disable loadGameButton accordingly
+                if (charSequence.toString().trim().isEmpty()) {
+                    saveGameBtn.setEnabled(false);
+                } else {
+                    saveGameBtn.setEnabled(true);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+            }
+        });
+        saveGameBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saveGameToFile(b, h, c, t, filenameEditText.getText().toString());
+//                dialog.dismiss();
+            }
+        });
+        cancelSaveBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+
+        dialog.show();
+    }
     public void initBoard(){
         //  now show the board
         //  now show the board
@@ -409,7 +468,7 @@ public class PenteBoard extends AppCompatActivity {
         saveGameBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                saveGameToFile(b, h, c, t);
+                askFileNameDialog();
             }
         });
         humanColor.setVisibility(View.VISIBLE);

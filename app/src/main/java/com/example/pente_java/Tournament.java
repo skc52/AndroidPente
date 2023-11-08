@@ -137,57 +137,55 @@ public class Tournament  implements Serializable {
 //        }
 //    }
 //
-//    public boolean loadGame(String filename, Board b, Round r) {
-//        try {
-//            // Read from the file
-//            Scanner scanner = new Scanner(new File(filename));
-//            // scanner = new Scanner(new File(filename));
-//            // Find and skip the "Board:" line
-//            while (scanner.hasNextLine()) {
-//                String line = scanner.nextLine();
-//                if (line.equals("Board:")) {
-//                    break;
-//                }
-//            }
-//
-//            // Initialize the board with the data
-//            int turnNum = 0;
-//            for (int i = 0; i < 19; i++) {
-//                // Read the line with the board data
-//                String line = scanner.nextLine();
-//                if (line.length() < 19) {
-//                    System.err.println("Error: Insufficient characters in the board data.");
-//                    return false;
-//                }
-//
-//                // Store the characters in the board
-//                for (int j = 0; j < 19; j++) {
-//                    if (line.charAt(j) != 'O') {
-//                        // Since the board content starts from 1 row and 1 col
-//                        b.setPiece(i + 1, j + 1, line.charAt(j));
-//                        turnNum++;
-//                    } else {
-//                        b.setPiece(i + 1, j + 1, '0');
-//                    }
-//                }
-//            }
-//
-//            r.setTurnNum(turnNum);
-//
-//            // Close the file
-//            scanner.close();
-//            // scanner = new Scanner(System.in);
-//            return true;
-//        } catch (FileNotFoundException e) {
-//            System.err.println("Error opening the file.");
-//            return false;
-//        }
-//    }
-//
-//    public void setTotalScore(int humanScore, int comScore) {
-//        loadedScores.put(human, humanScore);
-//        loadedScores.put(computer, comScore);
-//    }
+    public boolean loadGame(String gameData, Board b, Round r) {
+        try {
+            // Find and skip the "Board:" line
+            int boardIndex = gameData.indexOf("Board:");
+            if (boardIndex != -1) {
+                boardIndex += 6; // Skip "Board:"
+            } else {
+                System.err.println("Error: Board data not found in the game data.");
+                return false;
+            }
+
+            // Initialize the board with the data
+            int turnNum = 0;
+            for (int i = 0; i < 19; i++) {
+                // Read a line with the board data
+                String line = gameData.substring(boardIndex, boardIndex + 19);
+                boardIndex += 19;
+
+                if (line.length() < 19) {
+                    System.err.println("Error: Insufficient characters in the board data.");
+                    return false;
+                }
+
+                // Store the characters in the board
+                for (int j = 0; j < 19; j++) {
+                    if (line.charAt(j) != 'O') {
+                        // Since the board content starts from 1 row and 1 col
+                        b.setPiece(i + 1, j + 1, line.charAt(j));
+                        turnNum++;
+                    } else {
+                        b.setPiece(i + 1, j + 1, '0');
+                    }
+                }
+            }
+
+            r.setTurnNum(turnNum);
+
+            return true;
+        } catch (Exception e) {
+            System.err.println("Error loading game data: " + e.getMessage());
+            return false;
+        }
+    }
+
+
+    public void setTotalScore(int humanScore, int comScore) {
+        loadedScores.put(human, humanScore);
+        loadedScores.put(computer, comScore);
+    }
 //
     public void setUpPlayers(Player h, Player c) {
         human = h;
