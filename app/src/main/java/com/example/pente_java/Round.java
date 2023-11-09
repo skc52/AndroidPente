@@ -203,85 +203,91 @@ public class Round implements Serializable {
 //        }
 //    }
 //
-//    public void loadRound(String filename, Player human, Player computer, Tournament t) {
-//        int hCapturedPairs = 0;
-//        int hScore = 0;
-//        int cCapturedPairs = 0;
-//        int cScore = 0;
-//        String currPlayer = "";
-//        String currColor = "";
-//
-//        try (BufferedReader inputFile = new BufferedReader(new FileReader(filename))) {
-//            String line;
-//            while ((line = inputFile.readLine()) != null) {
-//                if (line.contains("Human:")) {
-//                    // Parse lines to extract captured pairs and score for the human player
-//                    line = inputFile.readLine();
-//                    int pos = line.indexOf("Captured pairs:");
-//                    if (pos != -1) {
-//                        hCapturedPairs = Integer.parseInt(line.substring(pos + 15).trim());
-//                    }
-//                    line = inputFile.readLine();
-//                    pos = line.indexOf("Score:");
-//                    if (pos != -1) {
-//                        hScore = Integer.parseInt(line.substring(pos + 6).trim());
-//                    }
-//                } else if (line.contains("Computer:")) {
-//                    // Parse lines to extract captured pairs and score for the computer player
-//                    line = inputFile.readLine();
-//                    int pos = line.indexOf("Captured pairs:");
-//                    if (pos != -1) {
-//                        cCapturedPairs = Integer.parseInt(line.substring(pos + 15).trim());
-//                    }
-//                    line = inputFile.readLine();
-//                    pos = line.indexOf("Score:");
-//                    if (pos != -1) {
-//                        cScore = Integer.parseInt(line.substring(pos + 6).trim());
-//                    }
-//                } else if (line.contains("Next Player:")) {
-//                    // Parse lines to extract the current player and color
-//                    int colonPos = line.indexOf(':');
-//                    if (colonPos != -1) {
-//                        String playerInfo = line.substring(colonPos + 2);
-//                        int hyphenPos = playerInfo.indexOf('-');
-//                        if (hyphenPos != -1) {
-//                            currPlayer = playerInfo.substring(0, hyphenPos - 1);
-//                            currColor = playerInfo.substring(hyphenPos + 2);
-//                        }
-//                    }
-//                }
-//            }
-//        } catch (IOException e) {
-//            System.err.println("Error opening the file.");
-//            return;
-//        }
-//
-//        setPairsCapturedNum(human, hCapturedPairs);
-//        setPairsCapturedNum(computer, cCapturedPairs);
-//
-//        t.setTotalScore(hScore, cScore);
-//
-//        if ("Human".equals(currPlayer)) {
-//            currentPlayer = computer;
-//            nextPlayer = human;
-//        } else {
-//            currentPlayer = human;
-//            nextPlayer = computer;
-//        }
-//
-//        if ("White".equals(currColor)) {
-//            currentPlayer.setColor('B');
-//            nextPlayer.setColor('W');
-//        } else {
-//            currentPlayer.setColor('W');
-//            nextPlayer.setColor('B');
-//        }
-//
-//        int turnNum = getTurnNum();
-//        turnNum += (hCapturedPairs * 2) + (cCapturedPairs * 2);
-//        setTurnNum(turnNum - 1);
-//    }
-//
+public void loadRound(String gameData, Player human, Player computer, Tournament t) {
+    int hCapturedPairs = 0;
+    int cCapturedPairs = 0;
+    int hScore = 0;
+    int cScore = 0;
+    String currPlayer = "";
+    String currColor = "";
+
+    String[] lines = gameData.split("\n");
+    int i = 0;
+    while (i < lines.length) {
+        String line = lines[i].trim();
+        if (line.contains("Human:")) {
+            i++; // Move to the next line
+            while (i < lines.length) {
+                line = lines[i].trim();
+                if (line.startsWith("Captured pairs:")) {
+                    hCapturedPairs = Integer.parseInt(line.substring(15).trim());
+                } else if (line.startsWith("Score:")) {
+                    hScore = Integer.parseInt(line.substring(6).trim());
+                } else {
+                    // If a line doesn't start with "Captured pairs" or "Score", exit the loop
+                    break;
+                }
+                i++; // Move to the next line
+            }
+        } else if (line.contains("Computer:")) {
+            i++; // Move to the next line
+            while (i < lines.length) {
+                line = lines[i].trim();
+                if (line.startsWith("Captured pairs:")) {
+                    cCapturedPairs = Integer.parseInt(line.substring(15).trim());
+                } else if (line.startsWith("Score:")) {
+                    cScore = Integer.parseInt(line.substring(6).trim());
+                } else {
+                    // If a line doesn't start with "Captured pairs" or "Score", exit the loop
+                    break;
+                }
+                i++; // Move to the next line
+            }
+        } else if (line.contains("Next Player:")) {
+            int colonPos = line.indexOf(':');
+            if (colonPos != -1) {
+                String playerInfo = line.substring(colonPos + 2).trim();
+                int hyphenPos = playerInfo.indexOf('-');
+                if (hyphenPos != -1) {
+                    currPlayer = playerInfo.substring(0, hyphenPos - 1).trim();
+                    currColor = playerInfo.substring(hyphenPos + 2).trim();
+                }
+            }
+            i++; // Move to the next line
+        } else {
+            i++; // Move to the next line
+        }
+    }
+
+    setPairsCapturedNum(human, hCapturedPairs);
+    setPairsCapturedNum(computer, cCapturedPairs);
+    t.setTotalScore(hScore, cScore);
+
+    if ("Human".equals(currPlayer)) {
+        currentPlayer = human;
+        nextPlayer = computer;
+    } else {
+
+        currentPlayer = computer;
+        nextPlayer = human;
+    }
+
+    if ("White".equals(currColor)) {
+        currentPlayer.setColor('W');
+        nextPlayer.setColor('B');
+
+    } else {
+        currentPlayer.setColor('B');
+        nextPlayer.setColor('W');
+    }
+
+    int turnNum = getTurnNum();
+    turnNum += (hCapturedPairs * 2) + (cCapturedPairs * 2);
+    setTurnNum(turnNum - 1);
+}
+
+
+    //
     public void setTurnNum(int num) {
         currentTurnNum = num;
     }

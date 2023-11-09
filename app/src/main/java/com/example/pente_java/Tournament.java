@@ -46,10 +46,10 @@ public class Tournament  implements Serializable {
             totalScore += r.getGamePoints(p);
         }
 
-        // Include the loaded scores from saved games
-//        if (loadedScores.containsKey(p)) {
-//            totalScore += loadedScores.get(p);
-//        }
+//         Include the loaded scores from saved games
+        if (loadedScores.containsKey(p)) {
+            totalScore += loadedScores.get(p);
+        }
 
         return totalScore;
     }
@@ -140,7 +140,8 @@ public class Tournament  implements Serializable {
     public boolean loadGame(String gameData, Board b, Round r) {
         try {
             // Find and skip the "Board:" line
-            int boardIndex = gameData.indexOf("Board:");
+            String updatedGameData = gameData.replaceAll("\n", "");
+            int boardIndex = updatedGameData.indexOf("Board:");
             if (boardIndex != -1) {
                 boardIndex += 6; // Skip "Board:"
             } else {
@@ -152,7 +153,7 @@ public class Tournament  implements Serializable {
             int turnNum = 0;
             for (int i = 0; i < 19; i++) {
                 // Read a line with the board data
-                String line = gameData.substring(boardIndex, boardIndex + 19);
+                String line = updatedGameData.substring(boardIndex, boardIndex + 19);
                 boardIndex += 19;
 
                 if (line.length() < 19) {

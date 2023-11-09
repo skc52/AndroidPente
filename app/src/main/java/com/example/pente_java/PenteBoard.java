@@ -201,6 +201,8 @@ public class PenteBoard extends AppCompatActivity {
         Button closeBtn = dialogView.findViewById(R.id.closeBtn);
         TextView coinTossResult = dialogView.findViewById(R.id.coinTossResult);
         final AlertDialog dialog = builder.create();
+        dialog.setCanceledOnTouchOutside(false);
+
         humanChoice = 'X';
         headsButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -416,6 +418,8 @@ public class PenteBoard extends AppCompatActivity {
             public void onClick(View v) {
                 saveGameToFile(b, h, c, t, filenameEditText.getText().toString());
 //                dialog.dismiss();
+                Intent intent = new Intent(PenteBoard.this, MainActivity.class);
+                startActivity(intent);
             }
         });
         cancelSaveBtn.setOnClickListener(new View.OnClickListener() {
@@ -530,7 +534,6 @@ public class PenteBoard extends AppCompatActivity {
                         //reset suggested pos, so that we are not stuck with yellow piece for that pos even after clicling on it
                         suggestedCol = -1;
                         suggestedRow = -1;
-
                         //change turn
                         if (b.getPiece(finalRow+1, finalCol+1)!='0'){
                             Toast.makeText(getApplicationContext(), "Cannot place on Clicked: Row " + finalRow + ", Column " + finalCol, Toast.LENGTH_SHORT).show();
@@ -584,6 +587,45 @@ public class PenteBoard extends AppCompatActivity {
             }
         }
     }
+    private void loadRound(String gameData){
+        TextView humanColor = findViewById(R.id.humanColor);
+        TextView computerColor = findViewById(R.id.computerColor);
+        t.loadGame(gameData, b, r);
+        r.loadRound(gameData, h, c, t);
+//    Toast.makeText(getApplicationContext(), "TEST", Toast.LENGTH_SHORT).show();
+
+        if (r.getCurrentPlayer().getColor() == 'W'){
+            r.getCurrentPlayer().setBackground(R.drawable.white_piece);
+            r.getNextPlayer().setBackground(R.drawable.black_piece);
+            if (r.getCurrentPlayer() == h){
+
+                humanColor.setText("Human: WHITE");
+                computerColor.setText("Computer: BLACK");
+            }
+            else{
+
+                humanColor.setText("Human: BLACK");
+                computerColor.setText("Computer: WHITE");
+            }
+        }
+        else{
+            r.getCurrentPlayer().setBackground(R.drawable.black_piece);
+            r.getNextPlayer().setBackground(R.drawable.white_piece);
+            if (r.getCurrentPlayer() == h){
+                humanColor.setText("Human: BLACK");
+                computerColor.setText("Computer: WHITE");
+            }
+            else{
+                humanColor.setText("Human: WHITE");
+                computerColor.setText("Computer: BLACK");
+
+            }
+        }
+
+
+
+        initBoard();
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -598,6 +640,27 @@ public class PenteBoard extends AppCompatActivity {
         s = new ComputerStrategy(t);
         t.setUpPlayers(h, c);
 
-        showCoinTossDialog();
+
+        Intent intent = getIntent();
+
+
+        if (intent.hasExtra("gamedata")) {
+
+            String receivedData = intent.getStringExtra("gamedata");
+            // Now you have the received string ("Hello, this is the string to pass")
+            // You can use it as needed in your target activity.
+            loadRound(receivedData);
+
+        }
+        else{
+            //if new game
+            showCoinTossDialog();
+        }
+
+
+
+
+
+
     }
 }
