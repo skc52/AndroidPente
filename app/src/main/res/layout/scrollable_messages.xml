@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="LOGS"
+        android:gravity="center"
+        android:padding="16dp"
+        android:textColor="@android:color/black"
+        android:textSize="24sp" />
+
+
+    <!-- Your existing UI components go here -->
+
+    <!-- ScrollView to contain the TextView for messages -->
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="500dp"
+
+    android:layout_marginTop="16dp">
+
+    <!-- TextView to display messages -->
+    <TextView
+        android:id="@+id/messageTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+
+
+        android:textColor="@android:color/black"
+        android:textSize="16sp" />
+
+    </ScrollView>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/closeButton"
+        android:text="Close"
+        android:layout_marginTop="16dp" />
+
+    <View
+        android:id="@+id/divider3"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider" />
+
+</LinearLayout>

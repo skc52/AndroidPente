@@ -56,9 +56,9 @@
             android:id="@+id/penteBoard"
             android:layout_width="400dp"
             android:layout_height="401dp"
-            android:columnCount="19"
+            android:columnCount="20"
             android:padding="4dp"
-            android:rowCount="19">
+            android:rowCount="20">
 
             <!--            <ImageView-->
             <!--                android:layout_width="wrap_content"-->
@@ -173,5 +173,14 @@
         app:layout_constraintHorizontal_bias="0.25"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/logBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Show Logs"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

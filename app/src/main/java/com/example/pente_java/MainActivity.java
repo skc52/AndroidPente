@@ -20,10 +20,12 @@ import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
@@ -116,6 +118,61 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         Button newGameBtn = findViewById(R.id.newGame);
+
+//        // on below line creating and initializing variable for context wrapper.
+//        ContextWrapper contextWrapper = new ContextWrapper(getApplicationContext());
+//        // on below line creating a directory for file and specifying the file name.
+//        File directory = contextWrapper.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+//        // on below line creating a text file.
+//        File txtFile = new File(directory, "game3" + ".txt");
+//        // on below line writing the text to our file.
+//        FileOutputStream fos = null;
+//        String gameData = "Board:\n" +
+//                "OOOWWBOOOOOOOOOOOOO\n" +
+//                "OOWOOBOOOOOOOBBOOOO\n" +
+//                "OOWOOOOOOOOOOOOOOOO\n" +
+//                "OOBOOOOOOOOOOOOOOOO\n" +
+//                "OOOOOOOOOOOOOBOOOOO\n" +
+//                "OOOWOOOOOOOOOOOOOOO\n" +
+//                "OOOOWOOOOOOOOOOOOOO\n" +
+//                "OOOOOOOOOOOOOOOOOOO\n" +
+//                "OOOOOOWOOOOOOOOOOOO\n" +
+//                "OOOOOOOWOWOOOOOOOOO\n" +
+//                "OOOOOOOOOOOOOOOOOOO\n" +
+//                "OOOOOOOOOOOOOOOOOOO\n" +
+//                "OOOOOOOOOOOOOOOOOOO\n" +
+//                "OOOOOOOOOOOOOOOOOOO\n" +
+//                "OOOOOOOOOOOOOOOOOOO\n" +
+//                "OOOOOBBOOBBOOOOOOOO\n" +
+//                "OOOOOWOOOOOOOOOOOOO\n" +
+//                "OOOOOWOOOOOOOOBOOOO\n" +
+//                "OOBWWOOOOOOOOOOOOOO\n" +
+//                "OOOOOOOOOOOOOOOOOOO\n" +
+//                "\n" +
+//                "Human:\n" +
+//                "Captured pairs: 1\n" +
+//                "Score: 0\n" +
+//                "\n" +
+//                "Computer:\n" +
+//                "Captured pairs: 0\n" +
+//                "Score: 0\n" +
+//                "\n" +
+//                "Next Player: Human - Black";
+//
+//
+//        try {
+//            fos = new FileOutputStream(txtFile);
+//            OutputStreamWriter osw = new OutputStreamWriter(fos);
+//            osw.write(gameData);
+//            osw.flush();
+//            osw.close();
+//            fos.close();
+//            Toast.makeText(contextWrapper, "File write successful..", Toast.LENGTH_SHORT).show();
+////            msgEdt.setText("");
+//        } catch (Exception e) {
+//            // on below line handling the exception.
+//            e.printStackTrace();
+//        }
 
 
         newGameBtn.setOnClickListener(new View.OnClickListener() {

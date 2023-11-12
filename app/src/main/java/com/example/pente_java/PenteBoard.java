@@ -17,6 +17,8 @@ import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -50,7 +52,7 @@ public class PenteBoard extends AppCompatActivity {
     private int suggestedCol = -1;
 
     private ComputerStrategy s;
-
+    private String messages = "";
 
 
     private static boolean isExternalStorageReadOnly() {
@@ -70,13 +72,9 @@ public class PenteBoard extends AppCompatActivity {
     }
 
 //    private String filename = "SampleFile.txt";
-    private String filepath = "MyFileStorage";
 
-    File myExternalFile;
-    private boolean isExternalStorageWritable() {
-        String state = Environment.getExternalStorageState();
-        return Environment.MEDIA_MOUNTED.equals(state);
-    }
+
+
     private void saveGameToFile(Board b, Player human, Player computer, Tournament t, String filename) {
 
         // on below line creating and initializing variable for context wrapper.
@@ -97,6 +95,7 @@ public class PenteBoard extends AppCompatActivity {
             osw.close();
             fos.close();
             Toast.makeText(contextWrapper, "File write successful..", Toast.LENGTH_SHORT).show();
+            messages += "File write successful\n";
 //            msgEdt.setText("");
         } catch (Exception e) {
             // on below line handling the exception.
@@ -379,6 +378,30 @@ public class PenteBoard extends AppCompatActivity {
 
     }
 
+    private void showLogs() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.scrollable_messages, null);
+        builder.setView(dialogView);
+        TextView messagesTextView = dialogView.findViewById(R.id.messageTextView);
+        messagesTextView.setText(messages);
+        Button cancelSaveBtn = dialogView.findViewById(R.id.closeButton);
+
+
+        final AlertDialog dialog = builder.create();
+        dialog.setCanceledOnTouchOutside(false);
+
+
+        cancelSaveBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+
+        dialog.show();
+    }
+
     private void askFileNameDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View dialogView = getLayoutInflater().inflate(R.layout.ask_filename_save, null);
@@ -447,6 +470,7 @@ public class PenteBoard extends AppCompatActivity {
 
         Button helpBtn = findViewById(R.id.helpBtn);
         Button saveGameBtn = findViewById(R.id.saveGame);
+        Button logBtn = findViewById(R.id.logBtn);
 
         if (!isExternalStorageAvailable() || isExternalStorageReadOnly()) {
             saveGameBtn.setEnabled(false);
@@ -465,6 +489,7 @@ public class PenteBoard extends AppCompatActivity {
                 String rowString = inputString.substring(1);
                 suggestedRow = b.getBoardDimension() - Integer.parseInt(rowString);
                 reasonTextView.setText("Suggested position is " + s.getFinalReason());
+                messages+="Suggested position is " + s.getFinalReason()+"\n";
 
                 initBoard();
             }
@@ -473,6 +498,13 @@ public class PenteBoard extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 askFileNameDialog();
+            }
+        });
+
+        logBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showLogs();
             }
         });
         humanColor.setVisibility(View.VISIBLE);
@@ -492,23 +524,73 @@ public class PenteBoard extends AppCompatActivity {
         GridLayout penteBoard = findViewById(R.id.penteBoard);
         penteBoard.removeAllViews();
 
-        for (int row = 0; row < b.getBoardDimension()-1; row++) {
-            for (int col = 0; col < b.getBoardDimension()-1; col++) {
+
+        for (int row = 0; row < b.getBoardDimension(); row++) {
+            for (int col = 0; col < b.getBoardDimension(); col++) {
+                if (row == 0 && col == 0){
+                    continue;
+                }
+
+                if (row == 0)
+                {
+                    TextView colLabel = new TextView(PenteBoard.this);
+                    colLabel.setText(String.valueOf((char)('A' + col-1)));
+                    colLabel.setTextColor(getResources().getColor(R.color.white));
+                    float currentSize = colLabel.getTextSize();
+                    float newSize = currentSize * 1.2f; // You can adjust the scale factor as needed
+                    colLabel.setTextSize(TypedValue.COMPLEX_UNIT_PX, newSize);
+                    colLabel.setGravity(Gravity.CENTER);
+                    // ... (other label customization code)
+
+                    GridLayout.Spec rowSpec = GridLayout.spec(row, 1f); // 1f means equal distribution
+                    GridLayout.Spec colSpec = GridLayout.spec(col, 1f); // 1f means equal distribution
+                    GridLayout.LayoutParams params = new GridLayout.LayoutParams(rowSpec, colSpec);
+                    params.width = 0;
+                    params.height = 0;
+                    colLabel.setLayoutParams(params);
+
+                    penteBoard.addView(colLabel);
+                    continue;
+                }
+                if (col == 0)
+                {
+                    TextView rowlabel = new TextView(PenteBoard.this);
+                    rowlabel.setText(String.valueOf(19-row+1));
+                    rowlabel.setTextColor(getResources().getColor(R.color.white));
+                    float currentSize = rowlabel.getTextSize();
+                    float newSize = currentSize * 1.2f; // You can adjust the scale factor as needed
+                    rowlabel.setTextSize(TypedValue.COMPLEX_UNIT_PX, newSize);
+                    rowlabel.setGravity(Gravity.CENTER);
+                    // ... (other label customization code)
+
+                    GridLayout.Spec rowSpec = GridLayout.spec(row, 1f); // 1f means equal distribution
+                    GridLayout.Spec colSpec = GridLayout.spec(col, 1f); // 1f means equal distribution
+                    GridLayout.LayoutParams params = new GridLayout.LayoutParams(rowSpec, colSpec);
+                    params.width = 0;
+                    params.height = 0;
+                    rowlabel.setLayoutParams(params);
+
+                    penteBoard.addView(rowlabel);
+                    continue;
+                }
+
                 Button button = new Button(PenteBoard.this);
                 // Set button properties
                 button.setLayoutParams(new GridLayout.LayoutParams());
                 int margin = 100; // Set your desired margin value
                 button.setPadding(margin, margin, margin, margin);
-                if (b.getPiece(row+1, col+1) == '0'){
+
+
+                if (b.getPiece(row, col) == '0'){
                     button.setBackgroundResource(R.drawable.border_drawable); // Custom background drawable
                 }
-                else if (b.getPiece(row+1, col+1) == 'W'){
+                else if (b.getPiece(row, col) == 'W'){
                     button.setBackgroundResource(R.drawable.white_piece); // Custom background drawable
                 }
                 else{
                     button.setBackgroundResource(R.drawable.black_piece); // Custom background drawable
                 }
-                if (row+1 == suggestedRow && col+1 == suggestedCol){
+                if (row == suggestedRow && col == suggestedCol){
                     button.setBackgroundResource(R.drawable.yellow_piece); // Custom background drawable
                 }
 
@@ -535,18 +617,20 @@ public class PenteBoard extends AppCompatActivity {
                         suggestedCol = -1;
                         suggestedRow = -1;
                         //change turn
-                        if (b.getPiece(finalRow+1, finalCol+1)!='0'){
-                            Toast.makeText(getApplicationContext(), "Cannot place on Clicked: Row " + finalRow + ", Column " + finalCol, Toast.LENGTH_SHORT).show();
+                        if (b.getPiece(finalRow, finalCol)!='0'){
+                            Toast.makeText(getApplicationContext(), "Cannot place on Clicked: Row " + s.convertPosToString(finalRow, finalCol), Toast.LENGTH_SHORT).show();
+                            messages += "Cannot place on Clicked: Row " + s.convertPosToString(finalRow, finalCol) + "\n";
                         }
-                        else if (r.getTurnNum() == 2 && r.getCurrentPlayer().getColor() == 'W' && (Math.abs(finalRow+1 - 10) <= 3 && Math.abs(finalCol+1 - 10) <= 3))  {
+                        else if (r.getTurnNum() == 2 && r.getCurrentPlayer().getColor() == 'W' && (Math.abs(finalRow - 10) <= 3 && Math.abs(finalCol - 10) <= 3))  {
                             // If a human inputs within 3 steps from the center, re-ask for input.
 
                                 Toast.makeText(getApplicationContext(), "Cannot put within 3 steps from J10 ", Toast.LENGTH_SHORT).show();
+                                messages += "Cannot put within 3 steps from J10\n";
                         }
                         else{
 //                            Toast.makeText(getApplicationContext(), r.getCurrentPlayer().getName(), Toast.LENGTH_SHORT).show();
                             button.setBackgroundResource(r.getCurrentPlayer().getBackground());
-                            if (!r.getCurrentPlayer().makeMove(finalRow+1, finalCol+1, r, b, s, t, PenteBoard.this)) {
+                            if (!r.getCurrentPlayer().makeMove(finalRow, finalCol, r, b, s, t, PenteBoard.this)) {
 
 //                                display round end scores
 //                                show option to play a new game or quit the game
@@ -555,7 +639,7 @@ public class PenteBoard extends AppCompatActivity {
                                 r.determineWinnerOfTheRound();
                                 scoreDialog();
                             }
-                            reasonTextView.setText("Computer placed on " + s.getFinalReason());
+//                            reasonTextView.setText("Computer placed on " + s.getFinalReason());
 
 //                            Toast.makeText(getApplicationContext(), "Placed on Clicked: Row " + finalRow + ", Column " + finalCol, Toast.LENGTH_SHORT).show();
 
@@ -577,11 +661,14 @@ public class PenteBoard extends AppCompatActivity {
 
                 //we want the computer to play on its own without having us to click on the cells
                 if (r.getCurrentPlayer() == c) {
+
                     if (!r.getCurrentPlayer().makeMove(-10, -10, r, b, s, t, PenteBoard.this)){
                         r.determineWinnerOfTheRound();
                         scoreDialog();
 
                     }
+                    reasonTextView.setText("Computer placed on " + s.getFinalReason());
+                    messages += "Computer placed on " + s.getFinalReason() + "\n";
                     initBoard();
                 }
             }
@@ -590,6 +677,8 @@ public class PenteBoard extends AppCompatActivity {
     private void loadRound(String gameData){
         TextView humanColor = findViewById(R.id.humanColor);
         TextView computerColor = findViewById(R.id.computerColor);
+        TextView reasonTextView = findViewById(R.id.reason);
+
         t.loadGame(gameData, b, r);
         r.loadRound(gameData, h, c, t);
 //    Toast.makeText(getApplicationContext(), "TEST", Toast.LENGTH_SHORT).show();

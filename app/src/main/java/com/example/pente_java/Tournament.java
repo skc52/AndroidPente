@@ -74,11 +74,8 @@ public class Tournament  implements Serializable {
             totalFiveConsScore += r.getGamePoints(p);
         }
 
-        // Include the loaded scores from saved games
-//        if (loadedScores.containsKey(p)) {
-//            totalScore += loadedScores.get(p);
-//        }
-        int[] allFinalScores = {totalCaptureScore+ totalFiveConsScore + totalFourConsScore, totalCaptureScore, totalFourConsScore, totalFiveConsScore};
+
+        int[] allFinalScores = {loadedScores.get(p)+totalCaptureScore+ totalFiveConsScore + totalFourConsScore, totalCaptureScore, totalFourConsScore, totalFiveConsScore};
         return allFinalScores;
     }
 
