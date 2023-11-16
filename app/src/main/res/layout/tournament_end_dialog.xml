@@ -9,8 +9,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Tournament End Scores"
-        android:textSize="18sp"
+        android:textSize="32sp"
         android:gravity="center"
+        android:textStyle="bold"
         android:layout_marginBottom="16dp" />
 
     <TextView
@@ -18,18 +19,12 @@
         android:layout_height="wrap_content"
         android:id="@+id/humanScore"
         android:text="Human Score: 0"
-        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textSize="20sp"
         android:gravity="center"
         android:layout_marginBottom="8dp" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/computerScore"
-        android:text="Computer Score: 0"
-        android:textSize="16sp"
-        android:gravity="center"
-        android:layout_marginBottom="8dp" />
+
 
     <TextView
         android:layout_width="match_parent"
@@ -55,6 +50,16 @@
         android:id="@+id/humanGamePoints"
         android:text="Human Game Points: 0"
         android:textSize="16sp"
+        android:gravity="center"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/computerScore"
+        android:text="Computer Score: 0"
+        android:textStyle="bold"
+        android:textSize="20sp"
         android:gravity="center"
         android:layout_marginBottom="8dp" />
 
@@ -90,7 +95,8 @@
         android:layout_height="wrap_content"
         android:id="@+id/winnerText"
         android:text="Winner: "
-        android:textSize="18sp"
+        android:textSize="30dp"
+        android:textStyle="bold"
         android:gravity="center" />
 
     <Button

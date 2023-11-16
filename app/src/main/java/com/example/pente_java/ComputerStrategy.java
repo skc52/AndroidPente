@@ -6,6 +6,11 @@ import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents a strategy for the computer player in a game.
+ * Uses various heuristics to determine the best position to place a piece on the game board.
+ * @param t The tournament instance to which the strategy belongs.
+ */
 public class ComputerStrategy {
     private final Tournament t;
     private String bestReason = "";
@@ -23,11 +28,20 @@ public class ComputerStrategy {
     private final int PROBABLY_CAPTURE = 6;
     private final int DONT_PUT_THERE = -15;
 //
+    /**
+     * Constructor for the ComputerStrategy class.
+     * @param t The tournament instance to which the strategy belongs.
+     */
     public ComputerStrategy(Tournament t) {
         this.t = t;
     }
 //
-//    // Convert the best position to a string input form like A10
+    /**
+     * Converts row and column positions to a string input form like A10.
+     * @param row The row position.
+     * @param col The column position.
+     * @return The string representation of the position.
+     */
     public String convertPosToString(int row, int col) {
         // col to Alphabet equivalent
         // col starts from 1 to 19
@@ -40,7 +54,15 @@ public class ComputerStrategy {
         return inputString;
     }
 //
-//    // Determine the best position on the board for the computer to place a piece
+    /**
+     * Determines the best position on the board for the computer to place a piece.
+     * Uses various heuristics to assign priorities to empty positions and selects the one with the highest priority.
+     * @param board The game board.
+     * @param currentPlayer The current player.
+     * @param opponentPlayer The opponent player.
+     * @param r The current round.
+     * @return The best position in string form.
+     */
     public String determineBestPosition(Board board, Player currentPlayer, Player opponentPlayer, Round r) {
         int maxPriority = -1;
         int bestRow = -1, bestCol = -1;
@@ -77,8 +99,10 @@ public class ComputerStrategy {
                     int maxPForThisSpace = -1;
                     String maxReason = "";
                     for (int i = 0; i < results.size(); i++) {
+                            //building 2 and 3 should have higher priority than stopping two or three
                         int p = results.get(i).getKey();
-                        if (i == 2 || i == 3 || i == 4) {
+
+                        if (i == 2 || i == 3 || i == 1) {
                             p *= 2;
                         }
                         if (p > maxPForThisSpace) {
@@ -100,41 +124,57 @@ public class ComputerStrategy {
         setFinalReason(bestPos + " to " + finalReason);
         return bestPos;
     }
-//
-//    // Setter for bestReason
+    /**
+     * Sets the final reason for the selected best position.
+     * @param reason The reason for selecting the best position.
+     */
     public void setFinalReason(String reason) {
         bestReason = reason;
     }
-//
-//    // Getter for bestReason
+    /**
+     * Gets the final reason for the selected best position.
+     * @return The reason for selecting the best position.
+     */
     public String getFinalReason() {
         return bestReason;
     }
-//
-//    // Implement the remaining helper methods similar to how they are defined in C++
+
+    /**
+     * Calculates the priority and reason for capturing pairs at a specific position.
+     * @param row The row position.
+     * @param col The column position.
+     * @param board The game board.
+     * @param currentPlayer The current player.
+     * @param r The current round.
+     * @param checkingOwn Indicates whether checking from own perspective.
+     * @return A Map.Entry containing the priority and reason.
+     */
     public Map.Entry<Integer, String> calculateCapturePairsPriority(int row, int col, Board board, Player currentPlayer,
                                                                     Round r, boolean checkingOwn) {
         int priority = 0;
         String reason = "";
-
-        char enemyPiece = (currentPlayer.getColor() == 'W') ? 'B' : 'W';
+        // Iterate through each direction
+        char enemyPiece = currentPlayer.getColor() == 'W' ? 'B' : 'W';
+        // stores the number of captures from that empty position
         int sureCaptureCount = 0;
-
         for (int direction = 0; direction < 4; direction++) {
+            // check left from the empty space
             if (board.isWithinBounds(row - dx[direction], col - dy[direction]) &&
                     board.getPiece(row - dx[direction], col - dy[direction]) == enemyPiece &&
                     board.isWithinBounds(row - dx[direction] * 2, col - dy[direction] * 2) &&
                     board.getPiece(row - dx[direction] * 2, col - dy[direction] * 2) == enemyPiece) {
+                // sure capture
                 if (board.isWithinBounds(row - dx[direction] * 3, col - dy[direction] * 3) &&
                         board.getPiece(row - dx[direction] * 3, col - dy[direction] * 3) == currentPlayer.getColor()) {
                     sureCaptureCount++;
-                    reason += "Capture a pair to the left " + dirName[direction] + ". ";
+                    reason = reason + "Capture a pair to left " + dirName[direction] + ". ";
                     if (r.getPairsCapturedNum(currentPlayer) < 4) {
                         priority = Math.max(priority, SURE_ONE_POINT);
                     } else {
-                        Player opponent = (r.getCurrentPlayer() == currentPlayer) ? r.getNextPlayer() : currentPlayer;
+                        Player opponent = r.getCurrentPlayer() == currentPlayer ? r.getNextPlayer() : currentPlayer;
                         int opponentScore = t.getTotalScores(opponent, false);
                         int ownScore = t.getTotalScores(currentPlayer, false);
+
                         if ((opponentScore - ownScore) > 1) {
                             priority = Math.max(priority, SURE_CAPTURE_BUT_LOSE);
                         } else {
@@ -142,88 +182,154 @@ public class ComputerStrategy {
                         }
                     }
                 } else {
+                    // chances of capture
+                    // no capture
                     if (!board.isWithinBounds(row - dx[direction] * 3, col - dy[direction] * 3)) {
+                        // if cannot capture, then have to stop its chance of consecutive
+                        // and for that, the priority is 4 because in case of consecutives of own piece, if there is no immediate 4 for sure consecutive
+                        // then the max priority to put own piece in that empty place is set to 4
                         priority = Math.max(priority, ONE_OPEN_END);
-                    } else {
-                        reason += "Possibly Capture a pair to the left " + dirName[direction] + ". ";
+                    }
+                    // probably capture
+                    else {
+                        // there is a chance that it may get captured and that should be higher priority than no capture
+                        // that may lead to 4 consecutives in the future
+                        reason = reason + "Possibly Capture a pair to left " + dirName[direction] + ". ";
                         priority = Math.max(priority, PROBABLY_CAPTURE);
                     }
                 }
             }
 
+            // check right
             if (board.isWithinBounds(row + dx[direction], col + dy[direction]) &&
                     board.getPiece(row + dx[direction], col + dy[direction]) == enemyPiece &&
                     board.isWithinBounds(row + dx[direction] * 2, col + dy[direction] * 2) &&
                     board.getPiece(row + dx[direction] * 2, col + dy[direction] * 2) == enemyPiece) {
+                // sure capture
                 if (board.isWithinBounds(row + dx[direction] * 3, col + dy[direction] * 3) &&
                         board.getPiece(row + dx[direction] * 3, col + dy[direction] * 3) == currentPlayer.getColor()) {
                     sureCaptureCount++;
-                    reason += "Capture a pair to the right " + dirName[direction] + ". ";
+                    reason = reason + "Capture a pair to right " + dirName[direction] + ". ";
                 } else {
                     if (!board.isWithinBounds(row + dx[direction] * 3, col + dy[direction] * 3)) {
+                        // if cannot capture, then have to stop its chance of consecutive
+                        // and for that, the priority is 4 because in case of consecutives of own piece, if there is no immediate 4 for sure consecutive
+                        // then the max priority to put own piece in that empty place is set to 4
                         priority = Math.max(priority, ONE_OPEN_END);
                     } else {
-                        reason += "Possibly Capture a pair to the right " + dirName[direction] + ". ";
+                        // there is a chance that it may get captured and that should be a higher priority than no capture
+                        // that may lead to 4 consecutives in the future;
+                        reason = reason + "Possibly Capture a pair to right " + dirName[direction] + ". ";
                         priority = Math.max(priority, PROBABLY_CAPTURE);
                     }
                 }
             }
         }
 
-        if (sureCaptureCount != 0 && (sureCaptureCount + r.getPairsCapturedNum(currentPlayer)) > 4) {
-            Player opponent = (r.getCurrentPlayer() == currentPlayer) ? r.getNextPlayer() : currentPlayer;
+        // if sureCaptureCount + r->getCapturedPairs(p) is > 4
+        // then we consider two cases, winning or losing
+        // if winning, winning by more than 3 ? then proceed with the surecapture, else hold off capturing
+        // if losing, losing by more than surecapturCount? if yes, then don't put the piece there, else chance of winning so take it
+        if (sureCaptureCount != 0 && sureCaptureCount + r.getPairsCapturedNum(currentPlayer) > 4) {
+            Player opponent = r.getCurrentPlayer() == currentPlayer ? r.getNextPlayer() : currentPlayer;
             int opponentScore = t.getTotalScores(opponent, false);
             int ownScore = t.getTotalScores(currentPlayer, false);
-            if (ownScore - opponentScore >= 0 && ownScore - opponentScore < 3) {
+
+            if ((ownScore - opponentScore) >= 0 && (ownScore - opponentScore) < 3) {
+                // winning but the score difference is not high enough
+                // decrease the priority, we wanna delay winning, focus on getting points by consecutive
                 priority = 5;
             } else {
                 if ((opponentScore - ownScore) > sureCaptureCount) {
-                    priority = DONT_PUT_THERE;
+                    // no way you should place the piece there because even though you will get the points,
+                    // you will lose the game
                 }
+                priority = DONT_PUT_THERE;
             }
         } else {
-            priority = Math.max(priority, SURE_ONE_POINT * sureCaptureCount);
-            char ownPiece = currentPlayer.getColor();
+            // capture count for the player is not going to >= 5, so take the points
+            // high priority
 
-            if (checkingOwn) {
-                for (int direction = 0; direction < 4; direction++) {
-                    if (board.isWithinBounds(row - dx[direction], col - dy[direction]) &&
-                            board.getPiece(row - dx[direction], col - dy[direction]) == ownPiece &&
-                            board.isWithinBounds(row + dx[direction], col + dy[direction]) &&
-                            board.getPiece(row + dx[direction], col + dy[direction]) == '0' &&
-                            board.isWithinBounds(row - 2 * dx[direction], col - 2 * dy[direction]) &&
-                            board.getPiece(row - 2 * dx[direction], col - 2 * dy[direction]) == enemyPiece) {
-                        priority = DONT_PUT_THERE;
-                        reason = "will get captured. don't place there\n";
-                    }
-                    if (board.isWithinBounds(row + 2 * dx[direction], col + 2 * dy[direction]) &&
-                            board.getPiece(row + 2 * dx[direction], col + 2 * dy[direction]) == enemyPiece &&
-                            board.isWithinBounds(row + dx[direction], col + dy[direction]) &&
-                            board.getPiece(row + dx[direction], col + dy[direction]) == ownPiece &&
-                            board.isWithinBounds(row - dx[direction], col - dy[direction]) &&
-                            board.getPiece(row - dx[direction], col - dy[direction]) == '0') {
-                        priority = DONT_PUT_THERE;
-                        reason = "will get captured. don't place there\n";
-                    }
-                    if (board.isWithinBounds(row - dx[direction], col - dy[direction]) &&
-                            board.getPiece(row - dx[direction], col - dy[direction]) == '0' &&
-                            board.isWithinBounds(row + 2 * dx[direction], col + 2 * dy[direction]) &&
-                            board.getPiece(row + 2 * dx[direction], col + 2 * dy[direction]) == enemyPiece &&
-                            board.isWithinBounds(row + dx[direction], col + dy[direction]) &&
-                            board.getPiece(row + dx[direction], col + dy[direction]) == ownPiece) {
-                        priority = DONT_PUT_THERE;
-                        reason = "will get captured. don't place there\n";
-                    }
+            priority = Math.max(priority, SURE_ONE_POINT * sureCaptureCount);
+        }
+
+        // what if placing the piece at the empty position leads to me getting sure captured
+        // see if by placing your piece there you are setting yourself for capture or not
+        // 1 2 3 4
+        // consider 2 or 3 positions
+        // check for 1 and 4 positions for enemy pieces
+        char ownPiece = currentPlayer.getColor();
+
+        // it does not make sense to check the following code if this function is being called from the enemy perspective
+        // it is currently your turn, then enemy piece does not need to check if the enemy piece gets captured by placing its piece
+        // at 2 or 3 positions
+        // when calling this function from the enemy perspective, it should only care about whether the enemy can capture my pairs if
+        // the enemy places its piece there
+        // if it can capture, then I should do my best to avoid it by placing my piece there
+
+        if (checkingOwn) {
+            for (int direction = 0; direction < 4; direction++) {
+                // empty position is in the 2nd position, E is enemy, P is currentPlayer
+                // E_P_
+                if (board.isWithinBounds(row - dx[direction], col - dy[direction]) &&
+                        board.getPiece(row - dx[direction], col - dy[direction]) == enemyPiece &&
+                        board.isWithinBounds(row + dx[direction], col + dy[direction]) &&
+                        board.getPiece(row + dx[direction], col + dy[direction]) == ownPiece &&
+                        board.isWithinBounds(row + 2 * dx[direction], col + 2 * dy[direction]) &&
+                        board.getPiece(row + 2 * dx[direction], col + 2 * dy[direction]) == '0') {
+                    priority = DONT_PUT_THERE;
+                    reason = "will get captured. don't place there\n";
+                }
+                // __PE
+                if (board.isWithinBounds(row + 2 * dx[direction], col + 2 * dy[direction]) &&
+                        board.getPiece(row + 2 * dx[direction], col + 2 * dy[direction]) == enemyPiece &&
+                        board.isWithinBounds(row + dx[direction], col + dy[direction]) &&
+                        board.getPiece(row + dx[direction], col + dy[direction]) == ownPiece &&
+                        board.isWithinBounds(row - dx[direction], col - dy[direction]) &&
+                        board.getPiece(row - dx[direction], col - dy[direction]) == '0') {
+                    priority = DONT_PUT_THERE;
+                    reason = "will get captured. don't place there\n";
+                }
+                // _P_E
+                if (board.isWithinBounds(row - dx[direction], col - dy[direction]) &&
+                        board.getPiece(row - dx[direction], col - dy[direction]) == ownPiece &&
+                        board.isWithinBounds(row + dx[direction], col + dy[direction]) &&
+                        board.getPiece(row + dx[direction], col + dy[direction]) == enemyPiece &&
+                        board.isWithinBounds(row - 2 * dx[direction], col - 2 * dy[direction]) &&
+                        board.getPiece(row - 2 * dx[direction], col - 2 * dy[direction]) == '0') {
+                    priority = DONT_PUT_THERE;
+                    reason = "will get captured. don't place there\n";
+                }
+
+                // EP__
+                if (board.isWithinBounds(row - dx[direction], col - dy[direction]) &&
+                        board.getPiece(row - dx[direction], col - dy[direction]) == ownPiece &&
+                        board.isWithinBounds(row + dx[direction], col + dy[direction]) &&
+                        board.getPiece(row + dx[direction], col + dy[direction]) == '0' &&
+                        board.isWithinBounds(row - 2 * dx[direction], col - 2 * dy[direction]) &&
+                        board.getPiece(row - 2 * dx[direction], col - 2 * dy[direction]) == enemyPiece) {
+                    priority = DONT_PUT_THERE;
+                    reason = "will get captured. don't place there\n";
                 }
             }
         }
 
-        if (!currentPlayer.equals(r.getCurrentPlayer())) {
+        if (r.getCurrentPlayer() != currentPlayer) {
             reason = "Stop opponent " + reason;
         }
+
         return new SimpleEntry<>(priority, reason);
     }
-//
+    /**
+     * Calculates the priority and reason for placing a piece to achieve four consecutive pieces in any direction.
+     * Checks for existing four consecutive pieces and the possibility of forming a Tessera (open-ended four consecutive).
+     * @param row The row position to check.
+     * @param col The column position to check.
+     * @param board The game board.
+     * @param currentPlayer The current player.
+     * @param r The current round.
+     * @return A Map.Entry containing the priority and reason.
+     */
     public Map.Entry<Integer, String> calculatePriorityWith4Consectuives(int row, int col, Board board,
                                                                          Player currentPlayer, Round r) {
         int priority = 0;
@@ -306,125 +412,151 @@ public class ComputerStrategy {
 
         return new SimpleEntry<>(priority, reason);
     }
-
+    /**
+     * Calculates the priority and reason for preventing the opponent from achieving four consecutive pieces in any direction.
+     * Delegates the calculation to the calculatePriorityWith4Consectuives method with opponentPlayer as the current player.
+     * @param row The row position to check.
+     * @param col The column position to check.
+     * @param board The game board.
+     * @param opponentPlayer The opponent player.
+     * @param r The current round.
+     * @return A Map.Entry containing the priority and reason.
+     */
     public Map.Entry<Integer, String> calculateOpponentPriorityWith4Consectuives(int row, int col, Board board,
                                                                                  Player opponentPlayer, Round r) {
         return calculatePriorityWith4Consectuives(row, col, board, opponentPlayer, r);
     }
-//
+    /**
+     * Calculates the priority and reason for placing a piece to achieve three consecutive pieces in any direction.
+     * Checks for existing three consecutive pieces and the possibility of forming a sequence that could lead to four consecutive.
+     * @param row The row position to check.
+     * @param col The column position to check.
+     * @param board The game board.
+     * @param currentPlayer The current player.
+     * @param r The current round.
+     * @return A Map.Entry containing the priority and reason.
+     */
     public Map.Entry<Integer, String> calculatePriorityWith3Consectuives(int row, int col, Board board,
-                                                                         Player currentPlayer, Round r) {
-        int priority = 0;
-        String reason = "";
+                                                                     Player currentPlayer, Round r) {
+    int priority = 0;
+    String reason = "";
 
-        int sure3ConsCount = 0;
-        boolean oneOpenEnd = false, bothOpenEnds = false;
-        // Iterate through each direction
-        for (int direction = 0; direction < 4; ++direction) {
-
-            boolean isConsecutive = true;
-            int leftCount = 0;
-            int rightCount = 0;
-            // Determine consecutive count in the left side
-            while (isConsecutive) {
-                int newRow = row - dx[direction] * (leftCount + 1);
-                int newCol = col - dy[direction] * (leftCount + 1);
-                if (board.isWithinBounds(newRow, newCol)
-                        && board.getPiece(newRow, newCol) == currentPlayer.getColor()) {
-                    leftCount++;
-                } else {
-                    isConsecutive = false;
-                }
+    int sure3ConsCount = 0;
+    boolean oneOpenEnd = false, bothOpenEnds = false;
+    // Iterate through each direction
+    for (int direction = 0; direction < 4; ++direction) {
+        boolean isConsecutive = true;
+        int leftCount = 0;
+        int rightCount = 0;
+        // determine consecutive count in left side
+        while (isConsecutive) {
+            int newRow = row - dx[direction] * (leftCount + 1);
+            int newCol = col - dy[direction] * (leftCount + 1);
+            if (board.isWithinBounds(newRow, newCol)
+                    && board.getPiece(newRow, newCol) == currentPlayer.getColor()) {
+                leftCount++;
+            } else {
+                isConsecutive = false;
             }
-            isConsecutive = true;
-            // Determine consecutive count in the right side
-            while (isConsecutive) {
-                int newRow = row + dx[direction] * (rightCount + 1);
-                int newCol = col + dy[direction] * (rightCount + 1);
-                if (board.isWithinBounds(newRow, newCol)
-                        && board.getPiece(newRow, newCol) == currentPlayer.getColor()) {
-                    rightCount++;
-                } else {
-                    isConsecutive = false;
-                }
+        }
+        isConsecutive = true;
+        // determine consecutive count in right side
+        while (isConsecutive) {
+            int newRow = row + dx[direction] * (rightCount + 1);
+            int newCol = col + dy[direction] * (rightCount + 1);
+            if (board.isWithinBounds(newRow, newCol)
+                    && board.getPiece(newRow, newCol) == currentPlayer.getColor()) {
+                rightCount++;
+            } else {
+                isConsecutive = false;
             }
+        }
 
-            if (leftCount + rightCount == 2) {
-                // Sure 3 consecutive
-                sure3ConsCount++;
-
-                // Check for the possibility of growing into 4 in either side
-
-                boolean leftEndOpen = false;
-                boolean rightEndOpen = false;
-
-                if (board.isWithinBounds(row - dx[direction] * (leftCount + 1), col - dy[direction] * (leftCount + 1))
-                        &&
-                        board.isWithinBounds(row + dx[direction] * (rightCount + 1),
-                                col + dy[direction] * (rightCount + 1))) {
-                    if (board.getPiece(row - dx[direction] * (leftCount + 1),
-                            col - dy[direction] * (leftCount + 1)) == '0' &&
-                            board.getPiece(row + dx[direction] * (rightCount + 1),
-                                    col + dy[direction] * (rightCount + 1)) == '0') {
-                        reason = reason + "Have 3 consecutive in " + dirName[direction] + " with both ends open, ";
-                        bothOpenEnds = true;
-                    } else {
-                        leftEndOpen = board.getPiece(row - dx[direction] * (leftCount + 1),
-                                col - dy[direction] * (leftCount + 1)) == '0';
-                        rightEndOpen = board.getPiece(row + dx[direction] * (rightCount + 1),
-                                col + dy[direction] * (rightCount + 1)) == '0';
-                    }
-                } else {
-                    leftEndOpen = rightEndOpen = true; // Treat both ends as open if out of bounds
-                }
-
-                if (leftEndOpen || rightEndOpen) {
-                    if (leftEndOpen && rightEndOpen) {
-                        reason = reason + "Have 3 consecutive in " + dirName[direction] + " with both ends open, ";
-                        bothOpenEnds = true;
-                    } else {
-                        reason = reason + "Have 3 consecutive in " + dirName[direction] + " with one open end, ";
-                        oneOpenEnd = true;
-                    }
-                }
-
+        if (leftCount + rightCount == 2) {
+            // sure 3 consecutive
+            sure3ConsCount++;
+            // check for possibility of growing into 4 in either side
+            if (board.isWithinBounds(row - dx[direction] * (leftCount + 1), col - dy[direction] * (leftCount + 1))
+                    &&
+                    board.isWithinBounds(
+                            row + dx[direction] * (rightCount + 1), col + dy[direction] * (rightCount + 1))
+                    &&
+                    board.getPiece(row - dx[direction] * (leftCount + 1),
+                            col - dy[direction] * (leftCount + 1)) == '0'
+                    &&
+                    board.getPiece(row + dx[direction] * (rightCount + 1),
+                            col + dy[direction] * (rightCount + 1)) == '0') {
+                reason = reason + "Have 3 consecutive in " + dirName[direction] + " with both ends open, ";
+                bothOpenEnds = true;
+            } else if (board.isWithinBounds(row - dx[direction] * (leftCount + 1),
+                    col - dy[direction] * (leftCount + 1)) &&
+                    board.getPiece(row - dx[direction] * (leftCount + 1),
+                            col - dy[direction] * (leftCount + 1)) == '0') {
+                reason = reason + "Have 3 consecutive in " + dirName[direction] + " with one open end, ";
+                oneOpenEnd = true;
+            } else if (board.isWithinBounds(row + dx[direction] * (rightCount + 1),
+                    col + dy[direction] * (rightCount + 1)) &&
+                    board.getPiece(row + dx[direction] * (rightCount + 1),
+                            col + dy[direction] * (rightCount + 1)) == '0') {
+                reason = reason + "Have 3 consecutive in " + dirName[direction] + " with one open end, ";
+                oneOpenEnd = true;
             }
-
         }
-
-        if (oneOpenEnd) {
-            priority = sure3ConsCount * ONE_OPEN_END;
-        }
-        if (bothOpenEnds) {
-            priority = sure3ConsCount * GET_MORE_POINTS;
-        }
-        // Prioritize getting your consecutive than blocking opponents
-        if (!r.getCurrentPlayer().equals(currentPlayer)) {
-            priority -= sure3ConsCount * 2;
-            reason = "Stop opponent " + reason;
-        }
-        return new AbstractMap.SimpleEntry<>(priority, reason);
     }
 
+    if (oneOpenEnd) {
+        priority = sure3ConsCount * ONE_OPEN_END;
+    }
+    if (bothOpenEnds) {
+        priority = sure3ConsCount * GET_MORE_POINTS;
+    }
+    // prioritize getting your consecutive than blocking opponents
+    if (r.getCurrentPlayer() != currentPlayer) {
+        priority -= sure3ConsCount * 2;
+        reason = "Stop opponent " + reason;
+    }
+    return new AbstractMap.SimpleEntry<>(priority, reason);
+}
+
+    /**
+     * Calculates the priority and reason for preventing the opponent from achieving three consecutive pieces in any direction.
+     * Delegates the calculation to the calculatePriorityWith3Consectuives method with opponentPlayer as the current player.
+     * @param row The row position to check.
+     * @param col The column position to check.
+     * @param board The game board.
+     * @param opponentPlayer The opponent player.
+     * @param r The current round.
+     * @return A Map.Entry containing the priority and reason.
+     */
     public Map.Entry<Integer, String> calculateOpponentPriorityWith3Consectuives(int row, int col, Board board,
                                                                                  Player opponentPlayer, Round r) {
         return calculatePriorityWith3Consectuives(row, col, board, opponentPlayer, r);
     }
 
+
+    /**
+     * Calculates the priority and reason for placing a piece to achieve two consecutive pieces in any direction.
+     * Checks for existing two consecutive pieces and the possibility of forming a sequence that could lead to four consecutive.
+     * @param row The row position to check.
+     * @param col The column position to check.
+     * @param board The game board.
+     * @param currentPlayer The current player.
+     * @param r The current round.
+     * @return A Map.Entry containing the priority and reason.
+     */
     public Map.Entry<Integer, String> calculatePriorityWith2Consectuives(int row, int col, Board board,
                                                                          Player currentPlayer, Round r) {
         int priority = 0;
         String reason = "";
 
         int sure2ConsCount = 0;
-        boolean possibleCapture = false;
-        boolean bothOpenEnds = false;
+        boolean possibleCapture = false, bothOpenEnds = false;
         // Iterate through each direction
         for (int direction = 0; direction < 4; ++direction) {
             boolean isConsecutive = true;
             int leftCount = 0;
             int rightCount = 0;
-            // Determine consecutive count in the left side
+            // determine consecutive count in left side
             while (isConsecutive) {
                 int newRow = row - dx[direction] * (leftCount + 1);
                 int newCol = col - dy[direction] * (leftCount + 1);
@@ -436,7 +568,7 @@ public class ComputerStrategy {
                 }
             }
             isConsecutive = true;
-            // Determine consecutive count in the right side
+            // determine consecutive count in right side
             while (isConsecutive) {
                 int newRow = row + dx[direction] * (rightCount + 1);
                 int newCol = col + dy[direction] * (rightCount + 1);
@@ -449,62 +581,75 @@ public class ComputerStrategy {
             }
 
             if (leftCount + rightCount == 1) {
-                // Sure 2 consecutive
+                // sure 2 consecutive
                 sure2ConsCount++;
 
-                // Check for the possibility of growing into 4 in either side, if one side is
-                // blocked by the enemy, then don't put there
-
+                // check for possibility of growing into 4 in either side, if one side is
+                // blocked by enemy, then don't put there
                 if (board.isWithinBounds(row - dx[direction] * (leftCount + 1), col - dy[direction] * (leftCount + 1))
                         &&
-                        board.isWithinBounds(row + dx[direction] * (rightCount + 1),
-                                col + dy[direction] * (rightCount + 1))) {
-                    if (board.getPiece(row - dx[direction] * (leftCount + 1),
-                            col - dy[direction] * (leftCount + 1)) == '0' &&
-                            board.getPiece(row + dx[direction] * (rightCount + 1),
-                                    col + dy[direction] * (rightCount + 1)) == '0') {
-                        reason = reason + "Have 2 consecutive in " + dirName[direction] + " with both ends open, ";
-                        bothOpenEnds = true;
-                    }
-                } else {
+                        board.isWithinBounds(
+                                row + dx[direction] * (rightCount + 1), col + dy[direction] * (rightCount + 1))
+                        &&
+                        board.getPiece(row - dx[direction] * (leftCount + 1),
+                                col - dy[direction] * (leftCount + 1)) == '0'
+                        &&
+                        board.getPiece(row + dx[direction] * (rightCount + 1),
+                                col + dy[direction] * (rightCount + 1)) == '0') {
+                    reason = reason + "Have 2 consecutive in " + dirName[direction] + " with both ends open, ";
+                    bothOpenEnds = true;
+                } else if (board.isWithinBounds(row - dx[direction] * (leftCount + 1),
+                        col - dy[direction] * (leftCount + 1)) &&
+                        board.getPiece(row - dx[direction] * (leftCount + 1),
+                                col - dy[direction] * (leftCount + 1)) == '0') {
+                    possibleCapture = true;
+                } else if (board.isWithinBounds(row + dx[direction] * (rightCount + 1),
+                        col + dy[direction] * (rightCount + 1)) &&
+                        board.getPiece(row + dx[direction] * (rightCount + 1),
+                                col + dy[direction] * (rightCount + 1)) == '0') {
                     possibleCapture = true;
                 }
-
-                if (board.isWithinBounds(row - dx[direction] * (leftCount + 1),
-                        col - dy[direction] * (leftCount + 1))) {
-                    if (board.getPiece(row - dx[direction] * (leftCount + 1),
-                            col - dy[direction] * (leftCount + 1)) == '0') {
-                        possibleCapture = true;
-                    }
-                }
-
-                if (board.isWithinBounds(row + dx[direction] * (rightCount + 1),
-                        col + dy[direction] * (rightCount + 1))) {
-                    if (board.getPiece(row + dx[direction] * (rightCount + 1),
-                            col + dy[direction] * (rightCount + 1)) == '0') {
-                        possibleCapture = true;
-                    }
-                }
-
             }
         }
 
-        // If both ends are open, possibleCapture will be true if for any direction from
-        // that position, it leads to its capture
+        // if both ends are open and possibleCapture is true for any direction
         if (!possibleCapture && bothOpenEnds) {
             priority = sure2ConsCount * 2;
         }
         if (r.getCurrentPlayer() != currentPlayer) {
+            priority -= 2;
+
             reason = "Stop opponent " + reason;
         }
         return new AbstractMap.SimpleEntry<>(priority, reason);
     }
 
+
+    /**
+     * Calculates the priority and reason for preventing the opponent from achieving two consecutive pieces in any direction.
+     * Delegates the calculation to the calculatePriorityWith2Consectuives method with opponentPlayer as the current player.
+     * @param row The row position to check.
+     * @param col The column position to check.
+     * @param board The game board.
+     * @param opponentPlayer The opponent player.
+     * @param r The current round.
+     * @return A Map.Entry containing the priority and reason.
+     */
     public Map.Entry<Integer, String> calculateOpponentPriorityWith2Consectuives(int row, int col, Board board,
                                                                                  Player opponentPlayer, Round r) {
         return calculatePriorityWith2Consectuives(row, col, board, opponentPlayer, r);
     }
 
+    /**
+     * Calculates the priority and reason for placing a piece to achieve a potential game-winning position with five consecutive pieces.
+     * Checks each direction for the possibility of creating five consecutive pieces by placing a piece in the specified row and column.
+     * @param row The row position to check.
+     * @param col The column position to check.
+     * @param board The game board.
+     * @param currentPlayer The current player.
+     * @param r The current round.
+     * @return A Map.Entry containing the priority and reason.
+     */
     public Map.Entry<Integer, String> calculateEndGamePriorityWith5Consectuives(int row, int col, Board board,
                                                                                 Player currentPlayer, Round r) {
         int priority = 0;
@@ -588,15 +733,36 @@ public class ComputerStrategy {
         return new AbstractMap.SimpleEntry<>(priority, reason);
     }
 
+    /**
+     * Calculates the opponent's priority and reason for blocking a potential game-winning position with five consecutive pieces.
+     * Delegates to the method calculating end game priority with five consecutives for the opponent player.
+     * @param row The row position to check.
+     * @param col The column position to check.
+     * @param board The game board.
+     * @param opponentPlayer The opponent player.
+     * @param r The current round.
+     * @return A Map.Entry containing the priority and reason for the opponent.
+     */
     public Map.Entry<Integer, String> calculateOpponentsEndGamePriorityWith5Consectuives(int row, int col, Board board,
                                                                                          Player opponentPlayer, Round r) {
         return calculateEndGamePriorityWith5Consectuives(row, col, board, opponentPlayer, r);
     }
 
+
+    /**
+     * Calculates the priority and reason for creating chances of consecutives in different directions.
+     * Checks for potential consecutive pieces in both forward and backward directions along each axis.
+     * @param row The row position to check.
+     * @param col The column position to check.
+     * @param board The game board.
+     * @param currentPlayer The current player.
+     * @return A Map.Entry containing the priority and reason for creating chances of consecutives.
+     */
+
     public Map.Entry<Integer, String> calculateConsecutivesPriority(int row, int col, Board board,
                                                                     Player currentPlayer) {
         int priority = 0;
-        String reason = "Create chances of consecutives ";
+        String reason = "";
 
         for (int direction = 0; direction < 4; ++direction) {
             int ownPiecesCount = 0;
@@ -622,8 +788,11 @@ public class ComputerStrategy {
                 }
 
                 if (emptyCount + ownPiecesCount == 4 && ownPiecesCount != 3) {
+                    if (priority < ownPiecesCount){
+                        reason = dirName[direction];
+                    }
                     priority = Math.max(priority, ownPiecesCount);
-                    reason = dirName[direction];
+
                 }
             }
 
@@ -650,8 +819,11 @@ public class ComputerStrategy {
                 }
 
                 if (emptyCount + ownPiecesCount == 4 && ownPiecesCount != 3) {
+                    if (priority < ownPiecesCount){
+                        reason = dirName[direction];
+                    }
                     priority = Math.max(priority, ownPiecesCount);
-                    reason = dirName[direction];
+
                 }
             }
 
@@ -689,8 +861,11 @@ public class ComputerStrategy {
 
                 if (emptyCount + ownPiecesCount == 1) {
                     int totalPiecesCount = ownPiecesCount + prevOwnPiecesCount;
+                    if (priority < totalPiecesCount){
+                        reason = dirName[direction];
+                    }
                     priority = Math.max(priority, totalPiecesCount);
-                    reason = dirName[direction];
+
                 }
             }
 
@@ -728,14 +903,29 @@ public class ComputerStrategy {
 
                 if (emptyCount + ownPiecesCount == 1) {
                     int totalPiecesCount = ownPiecesCount + prevOwnPiecesCount;
+                    if (priority < totalPiecesCount){
+                        reason = dirName[direction];
+                    }
                     priority = Math.max(priority, totalPiecesCount);
-                    reason = dirName[direction];
+
                 }
             }
         }
+        reason = "Create chances of consecutives in " + reason;
         return new AbstractMap.SimpleEntry<>(priority, reason);
     }
 
+
+    /**
+     * Calculates the priority and reason for stopping the opponent from creating chances of consecutives.
+     * Delegates to the calculateConsecutivesPriority method for the opponent player.
+     * @param row The row position to check.
+     * @param col The column position to check.
+     * @param board The game board.
+     * @param currentPlayer The current player.
+     * @param opponentPlayer The opponent player.
+     * @return A Map.Entry containing the priority and reason for stopping the opponent.
+     */
     public Map.Entry<Integer, String> calculateStopOpponentPriority(int row, int col, Board board, Player currentPlayer,
                                                                     Player opponentPlayer) {
         Map.Entry<Integer, String> priorityPair = calculateConsecutivesPriority(row, col, board, opponentPlayer);
@@ -743,6 +933,17 @@ public class ComputerStrategy {
         return priorityPair;
     }
 
+    /**
+     * Calculates the priority and reason for capturing risk by considering the opponent's move.
+     * Delegates to the calculateCapturePairsPriority method for the opponent player.
+     * @param row The row position to check.
+     * @param col The column position to check.
+     * @param board The game board.
+     * @param currentPlayer The current player.
+     * @param opponentPlayer The opponent player.
+     * @param r The current round.
+     * @return A Map.Entry containing the priority and reason for capturing risk.
+     */
     public Map.Entry<Integer, String> calculateCaptureRiskPriority(int row, int col, Board board, Player currentPlayer,
                                                                    Player opponentPlayer, Round r) {
         // See from enemy's viewpoint, if for that position, if the enemy places its

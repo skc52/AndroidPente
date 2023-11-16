@@ -10,13 +10,9 @@
         android:id="@+id/humanScore"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textSize="22dp"
+        android:textStyle="bold"
         android:text="Human Score: 0" />
-
-    <TextView
-        android:id="@+id/computerScore"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Computer Score: 0" />
 
     <TextView
         android:id="@+id/humanCaptureScore"
@@ -25,29 +21,38 @@
         android:text="Human Score: 0" />
 
     <TextView
-        android:id="@+id/computerCaptureScore"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Computer Score: 0" />
-
-
-    <TextView
         android:id="@+id/humanFiveScore"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Human Score: 0" />
-
-    <TextView
-        android:id="@+id/computerFiveScore"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Computer Score: 0" />
-
     <TextView
         android:id="@+id/humanFourScore"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Human Score: 0" />
+
+
+
+
+
+
+    <TextView
+        android:id="@+id/computerScore"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:textSize="22dp"
+        android:text="Computer Score: 0" />
+    <TextView
+        android:id="@+id/computerCaptureScore"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Computer Score: 0" />
+    <TextView
+        android:id="@+id/computerFiveScore"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Computer Score: 0" />
 
     <TextView
         android:id="@+id/computerFourScore"
@@ -58,7 +63,8 @@
     <TextView
         android:id="@+id/winnerDeclaration"
         android:layout_width="wrap_content"
-        android:textSize="24sp"
+        android:textSize="30sp"
+        android:textStyle="bold"
         android:layout_height="wrap_content"
         android:text="Winner: " />
     <!-- Add more TextViews for other scores if needed -->

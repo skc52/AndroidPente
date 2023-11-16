@@ -41,7 +41,6 @@ import java.util.Random;
 import java.util.Scanner;
 
 public class PenteBoard extends AppCompatActivity {
-    private static final int REQUEST_CODE_SAVE_FILE = 2;
     private Board b;
     private Tournament t;
     private Round r;
@@ -50,43 +49,28 @@ public class PenteBoard extends AppCompatActivity {
     private char humanChoice;
     private int suggestedRow = -1;
     private int suggestedCol = -1;
-
     private ComputerStrategy s;
     private String messages = "";
 
 
-    private static boolean isExternalStorageReadOnly() {
-        String extStorageState = Environment.getExternalStorageState();
-        if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(extStorageState)) {
-            return true;
-        }
-        return false;
-    }
 
-    private static boolean isExternalStorageAvailable() {
-        String extStorageState = Environment.getExternalStorageState();
-        if (Environment.MEDIA_MOUNTED.equals(extStorageState)) {
-            return true;
-        }
-        return false;
-    }
-
-//    private String filename = "SampleFile.txt";
-
-
-
+    /**
+     * Saves the current game state to a file.
+     *
+     * @param b The game board.
+     * @param human The human player.
+     * @param computer The computer player.
+     * @param t The tournament instance.
+     * @param filename The name of the file to save.
+     * Assistance Received - https://www.tutorialspoint.com/how-to-save-files-on-external-storage-in-android
+     */
     private void saveGameToFile(Board b, Player human, Player computer, Tournament t, String filename) {
 
-        // on below line creating and initializing variable for context wrapper.
         ContextWrapper contextWrapper = new ContextWrapper(getApplicationContext());
-        // on below line creating a directory for file and specifying the file name.
         File directory = contextWrapper.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
-        // on below line creating a text file.
         File txtFile = new File(directory, filename + ".txt");
-        // on below line writing the text to our file.
         FileOutputStream fos = null;
-        String gameData = buildGameData(b, human, computer, t); // Customize this method to build your game data
-
+        String gameData = buildGameData(b, human, computer, t);
         try {
             fos = new FileOutputStream(txtFile);
             OutputStreamWriter osw = new OutputStreamWriter(fos);
@@ -94,17 +78,26 @@ public class PenteBoard extends AppCompatActivity {
             osw.flush();
             osw.close();
             fos.close();
-            Toast.makeText(contextWrapper, "File write successful..", Toast.LENGTH_SHORT).show();
-            messages += "File write successful\n";
-//            msgEdt.setText("");
+            new AlertDialog.Builder(PenteBoard.this)
+                    .setTitle("Success")
+                    .setMessage("File write successful..")
+                    .setPositiveButton("OK", null)
+                    .show();
+            messages += "File write successful\n\n";
         } catch (Exception e) {
-            // on below line handling the exception.
+
             e.printStackTrace();
         }
     }
 
-
-    // Define a method to build your game data as a string
+    /**
+     * Builds a string representing the game data for saving.
+     * @param b The game board.
+     * @param human The human player.
+     * @param computer The computer player.
+     * @param t The tournament instance.
+     * @return A string containing the formatted game data.
+     */
     private String buildGameData(Board b, Player human, Player computer, Tournament t) {
         StringBuilder gameData = new StringBuilder();
         gameData.append("Board:\n");
@@ -133,6 +126,19 @@ public class PenteBoard extends AppCompatActivity {
 
         return gameData.toString();
     }
+
+    /**
+     * Displays an AlertDialog showing the results of the tournament, including scores,
+     * captured pairs, consecutive fours, game points, and the winner.
+     * @param humanScore The score of the human player.
+     * @param computerScore The score of the computer player.
+     * @param humanCapturedPairs The number of pairs captured by the human player.
+     * @param humanConsecutiveFours The number of consecutive fours achieved by the human player.
+     * @param humanGamePoints The game points scored by the human player.
+     * @param computerCapturedPairs The number of pairs captured by the computer player.
+     * @param computerConsecutiveFours The number of consecutive fours achieved by the computer player.
+     * @param computerGamePoints The game points scored by the computer player.
+     */
     private void showTournamentEndDialog(
         int humanScore, int computerScore,
         int humanCapturedPairs, int humanConsecutiveFours, int humanGamePoints,
@@ -186,6 +192,12 @@ public class PenteBoard extends AppCompatActivity {
         });
     }
 
+
+    /**
+     * Displays an AlertDialog for the coin toss, allowing the user to choose heads or tails.
+     * The result of the toss determines which player (human or computer) starts the round.
+     * The chosen options and result are shown in the dialog.
+     */
     private void showCoinTossDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View dialogView = getLayoutInflater().inflate(R.layout.coin_toss, null);
@@ -216,7 +228,7 @@ public class PenteBoard extends AppCompatActivity {
                 coinTossResult.setVisibility(View.VISIBLE);
                 if (humanChoice == toss) {
                     coinTossResult.setText("Human won the toss! Human is starting the round!");
-                    r.startRound(t, b, 'H',PenteBoard.this);
+                    r.startRound(t, b, 'H');
                     h.setBackground(R.drawable.white_piece);
                     c.setBackground(R.drawable.black_piece);
 
@@ -225,7 +237,7 @@ public class PenteBoard extends AppCompatActivity {
 
                 } else {
                     coinTossResult.setText("Computer won the toss! Computer is starting the round!");
-                    r.startRound(t, b, 'C',PenteBoard.this);
+                    r.startRound(t, b, 'C');
                     //set Human:Black
                     //set Computer: White
                     h.setBackground(R.drawable.black_piece);
@@ -237,7 +249,6 @@ public class PenteBoard extends AppCompatActivity {
                 }
                 initBoard();;
 
-//                dialog.dismiss();
             }
         });
 
@@ -255,14 +266,14 @@ public class PenteBoard extends AppCompatActivity {
                 coinTossResult.setVisibility(View.VISIBLE);
                 if (humanChoice == toss) {
                     coinTossResult.setText("Human won the toss! Human is starting the round!");
-                    r.startRound(t, b, 'H',PenteBoard.this);
+                    r.startRound(t, b, 'H');
                     h.setBackground(R.drawable.white_piece);
                     c.setBackground(R.drawable.black_piece);
                     humanColor.setText("Human: WHITE");
                     computerColor.setText("Computer: BLACK");
                 } else {
                     coinTossResult.setText("Computer won the toss! Computer is starting the round!");
-                    r.startRound(t, b, 'C',PenteBoard.this);
+                    r.startRound(t, b, 'C');
                     //set Human:Black
                     //set Computer: White
                     h.setBackground(R.drawable.black_piece);
@@ -274,10 +285,6 @@ public class PenteBoard extends AppCompatActivity {
             }
         });
 
-
-
-
-
         closeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -288,8 +295,12 @@ public class PenteBoard extends AppCompatActivity {
         dialog.show();
     }
 
-
-
+    /**
+     * Displays an AlertDialog showing the scores and winner at the end of a round.
+     * The dialog includes scores for human and computer players, captured pairs, game points,
+     * consecutive fours, and declares the winner. It provides options to quit the tournament or
+     * continue to the next round.
+     */
     public void scoreDialog(){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View dialogView = getLayoutInflater().inflate(R.layout.score_dialog, null);
@@ -331,7 +342,6 @@ public class PenteBoard extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 dialog.dismiss(); // Dismiss the dialog
-                // TODO show tournament end scores in a dialog box
                 int[] hFinalScores = t.getFinalScores(h, false);
                 int[] cFinalScores = t.getFinalScores(c, false);
                 showTournamentEndDialog(hFinalScores[0], cFinalScores[0], hFinalScores[1],
@@ -353,16 +363,16 @@ public class PenteBoard extends AppCompatActivity {
                 }
                 else{
                     //no coin toss needed
-//                    showCoinTossDialog();
+
                     if (t.getTotalScores(h, false) < t.getTotalScores(c, false)){
-                        r.startRound(t, b, 'C',PenteBoard.this);
+                        r.startRound(t, b, 'C');
                         humanColor.setText("Human: BLACK");
                         computerColor.setText("Computer: WHITE");
                         h.setBackground(R.drawable.black_piece);
                         c.setBackground(R.drawable.white_piece);
                     }
                     else{
-                        r.startRound(t, b, 'H',PenteBoard.this);
+                        r.startRound(t, b, 'H');
                         humanColor.setText("Human: WHITE");
                         computerColor.setText("Computer: BLACK");
                         h.setBackground(R.drawable.white_piece);
@@ -378,6 +388,11 @@ public class PenteBoard extends AppCompatActivity {
 
     }
 
+    /**
+     * Displays a dialog containing scrollable messages/logs.
+     * Messages are set dynamically through the 'messages' variable.
+     * Allows the user to close the dialog.
+     */
     private void showLogs() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View dialogView = getLayoutInflater().inflate(R.layout.scrollable_messages, null);
@@ -402,11 +417,17 @@ public class PenteBoard extends AppCompatActivity {
         dialog.show();
     }
 
+    /**
+     * Displays a dialog for asking the user to enter a filename for saving the game.
+     * Enables the save button when the filename is not empty.
+     * Saves the game data to a file when the user clicks the save button.
+     * Navigates back to the main activity after saving.
+     */
+
     private void askFileNameDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View dialogView = getLayoutInflater().inflate(R.layout.ask_filename_save, null);
         builder.setView(dialogView);
-
 
         EditText filenameEditText = dialogView.findViewById(R.id.filenameEditText);
         Button saveGameBtn = dialogView.findViewById(R.id.saveGameBtn);
@@ -419,19 +440,15 @@ public class PenteBoard extends AppCompatActivity {
         filenameEditText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                // Not needed for this example, but you must implement it.
             }
-
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                // Check the text in filenameEditText and enable/disable loadGameButton accordingly
                 if (charSequence.toString().trim().isEmpty()) {
                     saveGameBtn.setEnabled(false);
                 } else {
                     saveGameBtn.setEnabled(true);
                 }
             }
-
             @Override
             public void afterTextChanged(Editable editable) {
             }
@@ -451,15 +468,19 @@ public class PenteBoard extends AppCompatActivity {
                 dialog.dismiss();
             }
         });
-
-
         dialog.show();
     }
+
+    /**
+     * Initializes the game board with buttons representing each cell.
+     * Displays relevant game information such as captured pairs, total scores, and reasons.
+     * Allows the human player to make moves by clicking on empty cells.
+     * Initiates the computer's move automatically after the human player makes a move.
+     * Displays appropriate error messages if invalid moves are attempted.
+     * Handles the end of the round by determining the winner and showing round end scores.
+     * Offers options to start a new game or quit the current game.
+     */
     public void initBoard(){
-        //  now show the board
-        //  now show the board
-
-
         TextView humanCapturedPairsTextView = findViewById(R.id.humanCapturedPairs);
         TextView computerCapturedPairsTextView = findViewById(R.id.computerCapturedPairs);
         TextView humanTotalScoreTextView = findViewById(R.id.humanTotalScore);
@@ -472,9 +493,7 @@ public class PenteBoard extends AppCompatActivity {
         Button saveGameBtn = findViewById(R.id.saveGame);
         Button logBtn = findViewById(R.id.logBtn);
 
-        if (!isExternalStorageAvailable() || isExternalStorageReadOnly()) {
-            saveGameBtn.setEnabled(false);
-        }
+
 
 
         helpBtn.setOnClickListener(new View.OnClickListener() {
@@ -489,7 +508,7 @@ public class PenteBoard extends AppCompatActivity {
                 String rowString = inputString.substring(1);
                 suggestedRow = b.getBoardDimension() - Integer.parseInt(rowString);
                 reasonTextView.setText("Suggested position is " + s.getFinalReason());
-                messages+="Suggested position is " + s.getFinalReason()+"\n";
+                messages+="Suggested position is " + s.getFinalReason()+"\n\n";
 
                 initBoard();
             }
@@ -525,6 +544,9 @@ public class PenteBoard extends AppCompatActivity {
         penteBoard.removeAllViews();
 
 
+        final int numCP = r.getPairsCapturedNum(r.getCurrentPlayer());
+
+
         for (int row = 0; row < b.getBoardDimension(); row++) {
             for (int col = 0; col < b.getBoardDimension(); col++) {
                 if (row == 0 && col == 0){
@@ -540,7 +562,6 @@ public class PenteBoard extends AppCompatActivity {
                     float newSize = currentSize * 1.2f; // You can adjust the scale factor as needed
                     colLabel.setTextSize(TypedValue.COMPLEX_UNIT_PX, newSize);
                     colLabel.setGravity(Gravity.CENTER);
-                    // ... (other label customization code)
 
                     GridLayout.Spec rowSpec = GridLayout.spec(row, 1f); // 1f means equal distribution
                     GridLayout.Spec colSpec = GridLayout.spec(col, 1f); // 1f means equal distribution
@@ -561,7 +582,7 @@ public class PenteBoard extends AppCompatActivity {
                     float newSize = currentSize * 1.2f; // You can adjust the scale factor as needed
                     rowlabel.setTextSize(TypedValue.COMPLEX_UNIT_PX, newSize);
                     rowlabel.setGravity(Gravity.CENTER);
-                    // ... (other label customization code)
+
 
                     GridLayout.Spec rowSpec = GridLayout.spec(row, 1f); // 1f means equal distribution
                     GridLayout.Spec colSpec = GridLayout.spec(col, 1f); // 1f means equal distribution
@@ -608,43 +629,45 @@ public class PenteBoard extends AppCompatActivity {
                 // Set a click listener for the button
                 final int finalRow = row;
                 final int finalCol = col;
+
                 button.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        //check if second turn of white and withing 3 steps from j10
-
-                        //reset suggested pos, so that we are not stuck with yellow piece for that pos even after clicling on it
                         suggestedCol = -1;
                         suggestedRow = -1;
                         //change turn
                         if (b.getPiece(finalRow, finalCol)!='0'){
-                            Toast.makeText(getApplicationContext(), "Cannot place on Clicked: Row " + s.convertPosToString(finalRow, finalCol), Toast.LENGTH_SHORT).show();
-                            messages += "Cannot place on Clicked: Row " + s.convertPosToString(finalRow, finalCol) + "\n";
+                            new AlertDialog.Builder(PenteBoard.this)
+                                    .setTitle("Error")
+                                    .setMessage("Cannot place on Clicked: Row " + s.convertPosToString(finalRow, finalCol))
+                                    .setPositiveButton("OK", null)
+                                    .show();
+//                            Toast.makeText(getApplicationContext(), "Cannot place on Clicked: Row " + s.convertPosToString(finalRow, finalCol), Toast.LENGTH_SHORT).show();
+                            messages += "Cannot place on " + s.convertPosToString(finalRow, finalCol) + "\n\n";
                         }
                         else if (r.getTurnNum() == 2 && r.getCurrentPlayer().getColor() == 'W' && (Math.abs(finalRow - 10) <= 3 && Math.abs(finalCol - 10) <= 3))  {
                             // If a human inputs within 3 steps from the center, re-ask for input.
-
-                                Toast.makeText(getApplicationContext(), "Cannot put within 3 steps from J10 ", Toast.LENGTH_SHORT).show();
-                                messages += "Cannot put within 3 steps from J10\n";
+                            new AlertDialog.Builder(PenteBoard.this)
+                                    .setTitle("Error")
+                                    .setMessage("Cannot put within 3 steps from J10 ")
+                                    .setPositiveButton("OK", null)
+                                    .show();
+//                                Toast.makeText(getApplicationContext(), "Cannot put within 3 steps from J10 ", Toast.LENGTH_SHORT).show();
+                                messages += "Cannot put within 3 steps from J10\n\n";
                         }
                         else{
 //                            Toast.makeText(getApplicationContext(), r.getCurrentPlayer().getName(), Toast.LENGTH_SHORT).show();
                             button.setBackgroundResource(r.getCurrentPlayer().getBackground());
-                            if (!r.getCurrentPlayer().makeMove(finalRow, finalCol, r, b, s, t, PenteBoard.this)) {
-
+                            if (!r.getCurrentPlayer().makeMove(finalRow, finalCol, r, b, s, t)) {
 //                                display round end scores
 //                                show option to play a new game or quit the game
 //                                if new game is clicked, re intent back to this page
 //                                else show the overall tournament scores and end the game
                                 r.determineWinnerOfTheRound();
+                                messages+= r.getWinner().getName() + " won the round number " + String.valueOf(t.getRoundsCount()) + "\n\n";
                                 scoreDialog();
                             }
-//                            reasonTextView.setText("Computer placed on " + s.getFinalReason());
-
-//                            Toast.makeText(getApplicationContext(), "Placed on Clicked: Row " + finalRow + ", Column " + finalCol, Toast.LENGTH_SHORT).show();
-
-                            //TODO wait for 1 second
-                            // Define a Handler and a Runnable to delay computer move
+                            messages += r.getGameLog();
                             Handler handler = new Handler();
                             Runnable delayComputerMove = new Runnable() {
                                 @Override
@@ -653,27 +676,36 @@ public class PenteBoard extends AppCompatActivity {
                                 }
                             };
                             handler.postDelayed(delayComputerMove, 200);
-
                         }
-
                     }
                 });
 
                 //we want the computer to play on its own without having us to click on the cells
                 if (r.getCurrentPlayer() == c) {
 
-                    if (!r.getCurrentPlayer().makeMove(-10, -10, r, b, s, t, PenteBoard.this)){
+                    if (!r.getCurrentPlayer().makeMove(-10, -10, r, b, s, t)){
                         r.determineWinnerOfTheRound();
+                        messages+= r.getWinner().getName() + " won the round number " + String.valueOf(t.getRoundsCount()) + "\n\n";
                         scoreDialog();
-
                     }
+
+                    messages += r.getGameLog();
                     reasonTextView.setText("Computer placed on " + s.getFinalReason());
-                    messages += "Computer placed on " + s.getFinalReason() + "\n";
+                    messages += "Computer placed on " + s.getFinalReason() + "\n\n";
                     initBoard();
                 }
+
+
             }
         }
     }
+
+    /**
+     * Loads the game state from the provided game data, updating the game board and round information.
+     * Displays the current player's color, the next player's color, and the reason for the suggested move.
+     * @param gameData The serialized game data containing information about the round and board state.
+     * Initializes the game board with buttons representing each cell based on the loaded state.
+     */
     private void loadRound(String gameData){
         TextView humanColor = findViewById(R.id.humanColor);
         TextView computerColor = findViewById(R.id.computerColor);
@@ -681,13 +713,11 @@ public class PenteBoard extends AppCompatActivity {
 
         t.loadGame(gameData, b, r);
         r.loadRound(gameData, h, c, t);
-//    Toast.makeText(getApplicationContext(), "TEST", Toast.LENGTH_SHORT).show();
 
         if (r.getCurrentPlayer().getColor() == 'W'){
             r.getCurrentPlayer().setBackground(R.drawable.white_piece);
             r.getNextPlayer().setBackground(R.drawable.black_piece);
             if (r.getCurrentPlayer() == h){
-
                 humanColor.setText("Human: WHITE");
                 computerColor.setText("Computer: BLACK");
             }
@@ -707,14 +737,17 @@ public class PenteBoard extends AppCompatActivity {
             else{
                 humanColor.setText("Human: WHITE");
                 computerColor.setText("Computer: BLACK");
-
             }
         }
-
-
-
         initBoard();
     }
+
+    /**
+     * Initializes the PenteBoard activity when created.
+     * Sets up the game board, tournament, and players.
+     * If the activity is created with game data from a saved file, loads the game state and displays relevant messages.
+     * If the activity is created for a new game, initiates a coin toss to determine the starting player.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -729,27 +762,16 @@ public class PenteBoard extends AppCompatActivity {
         s = new ComputerStrategy(t);
         t.setUpPlayers(h, c);
 
-
         Intent intent = getIntent();
-
-
         if (intent.hasExtra("gamedata")) {
-
+            messages += "Loading game from saved file "+ intent.getStringExtra("filename") + "\n\n";
             String receivedData = intent.getStringExtra("gamedata");
-            // Now you have the received string ("Hello, this is the string to pass")
-            // You can use it as needed in your target activity.
             loadRound(receivedData);
-
         }
         else{
             //if new game
+            messages += "Starting a new game. Tossing a coin.\n\n";
             showCoinTossDialog();
         }
-
-
-
-
-
-
     }
 }

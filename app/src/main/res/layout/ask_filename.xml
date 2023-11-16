@@ -5,6 +5,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -14,21 +15,21 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Enter Filename:"
+            android:text="Select Filename:"
             android:textSize="18sp"
             android:textStyle="bold"/>
 
-        <EditText
-            android:id="@+id/filenameEditText"
+        <!-- Change the TextView to a Spinner -->
+        <Spinner
+            android:id="@+id/filenameSpinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Filename"
-            android:imeOptions="actionDone"
-            android:inputType="text"
-            android:maxLines="1" />
-
-
+            android:hint="Select"
+            android:minHeight="48dp"
+            android:gravity="end"
+            android:layout_marginStart="8dp"/>
     </LinearLayout>
+
     <TextView
         android:id="@+id/coinTossResult"
         android:layout_width="match_parent"
@@ -43,7 +44,6 @@
         android:id="@+id/loadGameBtn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-
         android:gravity="center"
         android:text="Load" />
 
@@ -51,11 +51,7 @@
         android:id="@+id/cancelSavingBtn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-
         android:gravity="center"
         android:text="Cancel" />
-
-
-
 
 </LinearLayout>

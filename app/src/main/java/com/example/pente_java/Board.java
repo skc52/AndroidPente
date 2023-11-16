@@ -9,29 +9,51 @@ public class Board {
     private int row;
     private int col;
 
+    /**
+     * Constructor for the Board class.
+     * Initializes the board and other members.
+     */
     public Board() {
-        // Constructor implementation in Java
-        // Initialize the board and other members here if needed
         resetBoard();
     }
-    public void setBoardDimension(int row, int col){
+
+    /**
+     * Sets the dimensions of the board.
+     * @param row The number of rows.
+     * @param col The number of columns.
+     */
+    public void setBoardDimension(int row, int col) {
         this.row = row;
         this.col = col;
     }
 
-    public int getRow(){
+    /**
+     * Gets the number of rows on the board.
+     * @return The number of rows.
+     */
+    public int getRow() {
         return row;
     }
 
-    public int getCol(){
+    /**
+     * Gets the number of columns on the board.
+     * @return The number of columns.
+     */
+    public int getCol() {
         return col;
     }
+
+    /**
+     * Parses the input string to set the position on the board.
+     * @param input The input string representing the position (e.g., "A1").
+     * @return True if the position is valid, false otherwise.
+     */
     public boolean parsePosition(String input) {
         char colChar = Character.toUpperCase(input.charAt(0));
         int numericEquivalent = colChar - 'A' + 1;
 
         if (numericEquivalent < 1 || numericEquivalent > BOARD_DIMENSION - 1) {
-            showComment("Enter column from A - S only");
+            // Display an error comment
             return false;
         }
 
@@ -41,27 +63,33 @@ public class Board {
         try {
             this.row = BOARD_DIMENSION - Integer.parseInt(rowString);
         } catch (NumberFormatException e) {
-            showComment("Invalid row position. Enter row between 1 to " + (BOARD_DIMENSION - 1));
+            // Display an error comment
             return false;
         }
 
         if (this.row < 1 || this.row > BOARD_DIMENSION - 1) {
-            showComment("Invalid row position. Enter row between 1 to " + (BOARD_DIMENSION - 1));
+            // Display an error comment
             return false;
         }
 
         return true;
     }
-//
-    public void showComment(String comment) {
-        System.out.println("Error: " + comment);
-    }
-//
+
+    /**
+     * Checks if the specified position is within the bounds of the board.
+     * @param row The row index.
+     * @param col The column index.
+     * @return True if the position is within bounds, false otherwise.
+     */
     public boolean isWithinBounds(int row, int col) {
-        // Assuming BOARD_DIMENSION is the maximum valid index (e.g., 19)
         return row >= 1 && row <= BOARD_DIMENSION - 1 && col >= 1 && col <= BOARD_DIMENSION - 1;
     }
 
+    /**
+     * Checks the validity of a position in the game.
+     * @param r The current round.
+     * @return True if the position is valid, false otherwise.
+     */
     public boolean checkValidity(Round r) {
         // When is a position valid?
         // Private members 'row' and 'col' hold the inputted values.
@@ -75,31 +103,22 @@ public class Board {
         if (r.getTurnNum() == 2 && r.getCurrentPlayer().getColor() == 'W') {
             // If a human inputs within 3 steps from the center, re-ask for input.
             if (Math.abs(row - 10) <= 3 && Math.abs(col - 10) <= 3) {
-                showComment(
-                        "White cannot put its piece within 3 steps of the center on its second turn. Re-input your position.");
+
                 return false;
             }
         }
 
         // Case when it is valid
-//        if (isWithinBounds(row, col) && getPiece(row, col) == '0') {
-//            return true;
-//        }
-//
-//        // Case when it is out of bounds
-//        if (!isWithinBounds(row, col)) {
-//            showComment("Out of Bounds");
-//            return false;
-//        }
-
-        // We would have returned from this function if the position was valid or out of
-        // bounds,
-        // so at this point, the position is not empty, which accounts for its
-        // invalidity.
-//        showComment("Position not empty!");
         return true;
     }
 
+    /**
+     * Checks for pairs in a specified direction and captures them.
+     * @param r The current round.
+     * @param p The current player.
+     * @param e The opponent player.
+     * @return True if the game ends after capturing pairs, false otherwise.
+     */
     public boolean checkAndCapture(Round r, Player p, Player e) {
         int[][] directions = { { 0, 1 }, { 1, 0 }, { 1, 1 }, { 1, -1 } };
         boolean gameEnd = false;
@@ -123,7 +142,17 @@ public class Board {
 
         return gameEnd;
     }
-//
+
+    /**
+     * Checks for pairs in a specified direction.
+     * @param p The current player.
+     * @param e The opponent player.
+     * @param row The row index.
+     * @param col The column index.
+     * @param dx The change in row.
+     * @param dy The change in column.
+     * @return True if pairs are found, false otherwise.
+     */
     public boolean checkForPairs(Player p, Player e, int row, int col, int dx, int dy) {
 
         int nextRow1 = row + dx;
@@ -143,10 +172,18 @@ public class Board {
                 board[nextRow3][nextCol3] == p.getColor()) {
             return true;
         }
-//
+
         return false;
     }
-//
+
+    /**
+     * Captures pairs in a specified direction.
+     * @param r The current round.
+     * @param p The current player.
+     * @param dx The change in row.
+     * @param dy The change in column.
+     * @return True if the specified player captures pairs, false otherwise.
+     */
     public boolean capturePairs(Round r, Player p, int dx, int dy) {
 
         int nextRow1 = row + dx;
@@ -165,7 +202,13 @@ public class Board {
 
         return false;
     }
-//
+
+    /**
+     * Checks for five consecutive pieces in all directions.
+     * @param r The current round.
+     * @param t The current tournament.
+     * @return True if five consecutive pieces are found, false otherwise.
+     */
     public boolean checkForFive(Round r, Tournament t) {
         char currentPlayerPiece = board[row][col]; // Current player's piece
 
@@ -210,8 +253,14 @@ public class Board {
         // No five consecutive pieces found
         return false;
     }
-//
-//    // Member function to count the number of consecutive 4s throughout the board
+
+    /**
+     * Counts the number of consecutive fours throughout the board.
+     * @param r The current round.
+     * @param piece The piece to check for consecutive fours.
+     * @param p The current player.
+     * @return The number of consecutive fours.
+     */
     public int checkForFours(Round r, char piece, Player p) {
         int foursCount = 0;
 
@@ -261,109 +310,76 @@ public class Board {
 
         return foursCount;
     }
-//
-//    // Member function to display the current state of the game board along with
-//    // player information
-//    public void displayBoard(Round r, Tournament t) {
-//        System.out.println(
-//                "----------------------------------------------------------------------------------------------------------");
-//
-//        for (int i = 0; i < BOARD_DIMENSION; i++) {
-//            // Display row labels separately as they are not stored in the board
-//            if (i != 0) {
-//                if (BOARD_DIMENSION - i <= 9) {
-//                    System.out.print(" ");
-//                }
-//                System.out.print(BOARD_DIMENSION - i + " ");
-//            } else {
-//                System.out.print("   ");
-//            }
-//
-//            // Column labels are stored in the board
-//            for (int j = 1; j < BOARD_DIMENSION; j++) {
-//                if (board[i][j] == '0') {
-//                    System.out.print("- ");
-//                } else {
-//                    System.out.print(board[i][j] + " ");
-//                }
-//            }
-//
-//            if (i == 10) {
-//                System.out.print("      ");
-//                System.out.print(r.getCurrentPlayer().getName() + "'s Color is " + r.getCurrentPlayer().getColor());
-//                System.out.print(". Pairs captured = " + r.getPairsCapturedNum(r.getCurrentPlayer()));
-//                System.out.print(". Tournament Score = " + t.getTotalScores(r.getCurrentPlayer(), true));
-//            }
-//            if (i == 11) {
-//                System.out.print("      ");
-//                System.out.print(r.getNextPlayer().getName() + "'s Color is " + r.getNextPlayer().getColor());
-//                System.out.print(". Pairs captured = " + r.getPairsCapturedNum(r.getNextPlayer()));
-//                System.out.print(". Tournament Score = " + t.getTotalScores(r.getNextPlayer(), true));
-//            }
-//            if (i == 12) {
-//                System.out.print("      ");
-//                System.out.print("Next player is " + r.getNextPlayer().getName());
-//            }
-//            if (i == 13) {
-//                System.out.print("      ");
-//                System.out.print("Turn num is " + r.getTurnNum());
-//            }
-//
-//            System.out.println();
-//        }
-//        System.out.println(
-//                "----------------------------------------------------------------------------------------------------------");
-//    }
-//
+
+    /**
+     * Gets the piece at the specified row and column on the board.
+     * @param row The row index.
+     * @param col The column index.
+     * @return The piece at the specified position.
+     */
     public char getPiece(int row, int col) {
         return board[row][col];
     }
 
+    /**
+     * Gets the dimension of the game board.
+     * @return The dimension of the game board.
+     */
     public int getBoardDimension() {
         return BOARD_DIMENSION;
     }
-//
+
+    /**
+     * Sets the piece at the specified row and column on the board.
+     * @param row The row index.
+     * @param col The column index.
+     * @param c The piece to set at the specified position.
+     */
     public void setPiece(int row, int col, char c) {
         board[row][col] = c;
     }
-//
-    public boolean placeYourPiece(Round r, Tournament t, Activity a) {
+
+    /**
+     * Places the piece in the specified row and column on the board.
+     * Checks for pairs to capture, 5 consecutive pieces, and updates the game log.
+     * @param r The current round.
+     * @param t The tournament.
+     * @return True if the piece is successfully placed, false otherwise.
+     */
+    public boolean placeYourPiece(Round r, Tournament t) {
         // Place the piece in the specified row and column on the board
 
-            if (r.getTurnNum() == 0 && r.getCurrentPlayer().getColor() == 'W') {
-                board[10][10] = 'W';
-            } else {
-                board[this.row][this.col] = r.getCurrentPlayer().getColor();
+        if (r.getTurnNum() == 0 && r.getCurrentPlayer().getColor() == 'W') {
+            board[10][10] = 'W';
+        } else {
+            board[this.row][this.col] = r.getCurrentPlayer().getColor();
 
-                // Check for pairs to capture
-                if (checkAndCapture(r, r.getCurrentPlayer(), r.getNextPlayer())) {
-                    // Count the fours and update in the round
-                    checkForFours(r, r.getCurrentPlayer().getColor(), r.getCurrentPlayer());
-                    checkForFours(r, r.getNextPlayer().getColor(), r.getNextPlayer());
-//                r.determineWinnerOfTheRound();
-                    r.changeTurn();
-                    return false;
-                }
-
-                // Check for 5 consecutive pieces, if found, the game terminates
-                if (checkForFive(r, t)) {
-                    checkForFours(r, r.getCurrentPlayer().getColor(), r.getCurrentPlayer());
-                    checkForFours(r, r.getNextPlayer().getColor(), r.getNextPlayer());
-                    r.changeTurn();
-                    return false;
-                }
+            // Check for pairs to capture
+            if (checkAndCapture(r, r.getCurrentPlayer(), r.getNextPlayer())) {
+                // Count the fours and update in the round
+                checkForFours(r, r.getCurrentPlayer().getColor(), r.getCurrentPlayer());
+                checkForFours(r, r.getNextPlayer().getColor(), r.getNextPlayer());
+                r.changeTurn();
+                return false;
             }
 
-
-
-
-
+            // Check for 5 consecutive pieces, if found, the game terminates
+            if (checkForFive(r, t)) {
+                checkForFours(r, r.getCurrentPlayer().getColor(), r.getCurrentPlayer());
+                checkForFours(r, r.getNextPlayer().getColor(), r.getNextPlayer());
+                r.changeTurn();
+                return false;
+            }
+        }
 
         r.changeTurn();
-//        ((PenteBoard) a).initBoard();
+        // ((PenteBoard) a).initBoard();
         return true;
     }
-//
+
+    /**
+     * Resets the game board to its initial state.
+     */
     public void resetBoard() {
         // add col labels
         for (int i = 1; i < BOARD_DIMENSION; i++) {
@@ -371,15 +387,15 @@ public class Board {
         }
         for (int i = 1; i < BOARD_DIMENSION; i++) {
             for (int j = 1; j < BOARD_DIMENSION; j++) {
-//                if (i == 10 && j == 10){
-//                    board[i][j] = 'W';
-//                }
-//                else if (i == 17 && j == 10){
-//                    board[i][j] = 'B';
-//                }
-//                else{
-                    board[i][j] = '0';
-//                }
+                // if (i == 10 && j == 10){
+                //     board[i][j] = 'W';
+                // }
+                // else if (i == 17 && j == 10){
+                //     board[i][j] = 'B';
+                // }
+                // else{
+                board[i][j] = '0';
+                // }
 
             }
         }
